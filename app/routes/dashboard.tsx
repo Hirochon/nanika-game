@@ -1,10 +1,10 @@
 import {
-  useLoaderData,
-  redirect,
-  Form,
-  useNavigation,
-  type LoaderFunctionArgs,
   type ActionFunctionArgs,
+  Form,
+  type LoaderFunctionArgs,
+  redirect,
+  useLoaderData,
+  useNavigation,
 } from 'react-router';
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -29,7 +29,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  console.log('Logout action called');
+  console.log('Logout action called with DDD architecture');
 
   // POSTメソッドのみ許可
   if (request.method !== 'POST') {
@@ -37,10 +37,22 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    // HTTPOnlyクッキーを削除してログイン画面にリダイレクト
-    const logoutCookie = 'nanika_game_user=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0';
+    // DDD Architecture imports
+    const { container, TOKENS } = await import('@infrastructure/config/container');
+    const { LogoutCommand } = await import('@application/commands/logout.command');
+    const { LogoutUseCase } = await import('@application/use-cases/logout.use-case');
 
-    console.log('Logout successful, redirecting to login');
+    // コマンドオブジェクト作成
+    const logoutCommand = LogoutCommand.fromRequest(request);
+
+    // ユースケース実行
+    const logoutUseCase = container.resolve<LogoutUseCase>(TOKENS.LogoutUseCase);
+    const result = await logoutUseCase.execute(logoutCommand);
+
+    console.log('Logout result:', { success: result.success });
+
+    // セッションCookieを削除してログイン画面にリダイレクト
+    const logoutCookie = 'nanika_game_user=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0';
 
     return redirect('/login', {
       headers: {

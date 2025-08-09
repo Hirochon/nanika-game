@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import {
-  Link,
-  useNavigate,
-  Form,
-  useActionData,
-  redirect,
   type ActionFunctionArgs,
+  Form,
+  Link,
   type LoaderFunctionArgs,
+  redirect,
+  useActionData,
+  useNavigate,
 } from 'react-router';
-import { validateLoginForm, type LoginFormData } from '~/utils/validation';
+import { type LoginFormData, validateLoginForm } from '~/utils/validation';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // 既にログイン済みの場合はダッシュボードにリダイレクト
@@ -20,28 +20,36 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { mockAuthServerApi } = await import('~/utils/mock-auth.server');
+  // DDD Architecture imports
+  const { container, TOKENS } = await import('@infrastructure/config/container');
+  const { LoginCommand } = await import('@application/commands/login.command');
+  const { LoginUseCase } = await import('@application/use-cases/login.use-case');
 
   const formData = await request.formData();
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
-
-  console.log('Server action called with:', { email, password });
 
   // バリデーション
-  const validation = validateLoginForm({ email, password });
+  const validation = validateLoginForm({
+    email: formData.get('email') as string,
+    password: formData.get('password') as string,
+  });
+
   if (!validation.isValid) {
     return { errors: validation.errors };
   }
 
-  // 認証
+  // 認証処理
   try {
-    const result = await mockAuthServerApi.login({ email, password });
-    console.log('Server login result:', result);
+    // コマンドオブジェクト作成
+    const loginCommand = LoginCommand.fromFormData(formData);
 
-    if (result.success && result.user) {
+    // ユースケース実行
+    const loginUseCase = container.resolve<LoginUseCase>(TOKENS.LoginUseCase);
+    const result = await loginUseCase.execute(loginCommand);
+
+
+    if (result.success && result.user && result.session) {
       // セッションCookieを設定してダッシュボードにリダイレクト
-      const sessionCookie = `nanika_game_user=${encodeURIComponent(JSON.stringify(result.user))}; Path=/; HttpOnly; SameSite=Lax`;
+      const sessionCookie = `nanika_game_user=${encodeURIComponent(JSON.stringify(result.userData))}; Path=/; HttpOnly; SameSite=Lax`;
 
       return redirect('/dashboard', {
         headers: {
@@ -52,7 +60,6 @@ export async function action({ request }: ActionFunctionArgs) {
       return { error: result.error || 'ログインに失敗しました' };
     }
   } catch (error) {
-    console.error('Login error:', error);
     return { error: 'ログインに失敗しました。再度お試しください。' };
   }
 }
@@ -153,7 +160,11 @@ export default function Login() {
         </Form>
 
         <div className="text-center">
-          <p className="text-sm text-gray-600">テスト用アカウント: admin@example.com / Admin123</p>
+          <p className="text-sm text-gray-600">
+            テスト用アカウント:<br />
+            メール: admin@example.com<br />
+            パスワード: Admin123 (最初のAは大文字)
+          </p>
         </div>
       </div>
     </div>

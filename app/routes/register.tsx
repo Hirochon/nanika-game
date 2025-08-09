@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useAuth } from '~/hooks/useAuth';
-import { validateRegisterForm, type RegisterFormData } from '~/utils/validation';
+import { type RegisterFormData, validateRegisterForm } from '~/utils/validation';
 
 export default function Register() {
   const [formData, setFormData] = useState<RegisterFormData>({
