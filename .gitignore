@@ -13,6 +13,9 @@ out/
 *.tsbuildinfo
 .react-router/
 
+# Docker volumes
+docker-compose.override.yml
+
 # Environment variables
 .env
 .env.local
