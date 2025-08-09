@@ -1,12 +1,11 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.1.4/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": true
   },
   "files": {
-    "ignore": ["node_modules/**", "dist/**", "build/**", "coverage/**"],
     "ignoreUnknown": false
   },
   "formatter": {
@@ -33,19 +32,15 @@
         "noConstAssign": "error",
         "noGlobalObjectCalls": "error",
         "noInvalidConstructorSuper": "error",
-        "noNewSymbol": "error",
         "noSetterReturn": "error",
         "noUndeclaredVariables": "error",
         "noUnreachable": "error",
         "noUnreachableSuper": "error"
       },
       "style": {
-        "noArguments": "error",
-        "noVar": "error",
         "useConst": "warn",
         "useDefaultParameterLast": "warn",
         "useExponentiationOperator": "warn",
-        "useNumericLiterals": "warn",
         "useTemplate": "warn"
       },
       "suspicious": {
@@ -59,10 +54,10 @@
         "noImportAssign": "error",
         "noMisleadingCharacterClass": "error",
         "noPrototypeBuiltins": "warn",
-        "noSelfAssign": "error",
+        "noSelfCompare": "error",
         "noShadowRestrictedNames": "error",
-        "useDefaultSwitchClauseLast": "warn",
-        "useValidTypeof": "error"
+        "noVar": "error",
+        "useDefaultSwitchClauseLast": "warn"
       }
     }
   },
@@ -81,7 +76,7 @@
   },
   "overrides": [
     {
-      "include": ["*.ts", "*.tsx"],
+      "includes": ["*.ts", "*.tsx"],
       "linter": {
         "rules": {
           "correctness": {
@@ -91,7 +86,7 @@
       }
     },
     {
-      "include": ["*.json", "*.jsonc"],
+      "includes": ["*.json", "*.jsonc"],
       "formatter": {
         "indentWidth": 2
       }

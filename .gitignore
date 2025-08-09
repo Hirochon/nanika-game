@@ -11,6 +11,7 @@ dist/
 build/
 out/
 *.tsbuildinfo
+.react-router/
 
 # Environment variables
 .env
