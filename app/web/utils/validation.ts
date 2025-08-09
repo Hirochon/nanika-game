@@ -16,7 +16,7 @@ export function validatePassword(password: string, strict: boolean = true): bool
   if (!strict) {
     return password.length >= 6;
   }
-  
+
   // For registration, we enforce stricter rules
   if (password.length < 8) return false;
 
@@ -51,7 +51,8 @@ export function validateLoginForm(data: LoginFormData): ValidationResult {
 
   if (!data.password) {
     errors.password = 'Password is required';
-  } else if (!validatePassword(data.password, false)) { // Use non-strict validation for login
+  } else if (!validatePassword(data.password, false)) {
+    // Use non-strict validation for login
     errors.password = 'Password must be at least 6 characters';
   }
 

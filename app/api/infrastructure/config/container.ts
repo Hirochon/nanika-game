@@ -1,17 +1,17 @@
 import 'reflect-metadata';
 
 // Use Cases
-import { LoginUseCase } from '@application/use-cases/login.use-case';
-import { LogoutUseCase } from '@application/use-cases/logout.use-case';
+import { LoginUseCase } from '@api/application/use-cases/login.use-case';
+import { LogoutUseCase } from '@api/application/use-cases/logout.use-case';
+import { PrismaSessionRepository } from '@api/infrastructure/persistence/repositories/prisma-session.repository';
+// Infrastructure implementations
+import { PrismaUserRepository } from '@api/infrastructure/persistence/repositories/prisma-user.repository';
 import type { ISessionRepository } from '@domain/repositories/session.repository';
 // Repository Interfaces
 import type { IUserRepository } from '@domain/repositories/user.repository';
 // Domain Services
 import { AuthenticationService } from '@domain/services/authentication.service';
 import { SessionService } from '@domain/services/session.service';
-import { PrismaSessionRepository } from '@infrastructure/persistence/repositories/prisma-session.repository';
-// Infrastructure implementations
-import { PrismaUserRepository } from '@infrastructure/persistence/repositories/prisma-user.repository';
 import { PrismaClient } from '@prisma/client';
 import { container } from 'tsyringe';
 

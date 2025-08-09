@@ -6,14 +6,13 @@ import {
   type LoaderFunctionArgs,
   redirect,
   useActionData,
-  useNavigate,
 } from 'react-router';
-import { type LoginFormData, validateLoginForm } from '~/utils/validation';
+import { type LoginFormData, validateLoginForm } from '~/web/utils/validation';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // 既にログイン済みの場合はダッシュボードにリダイレクト
   const cookie = request.headers.get('Cookie');
-  if (cookie && cookie.includes('nanika_game_user=')) {
+  if (cookie?.includes('nanika_game_user=')) {
     return redirect('/dashboard');
   }
   return null;
@@ -21,9 +20,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   // DDD Architecture imports
-  const { container, TOKENS } = await import('@infrastructure/config/container');
-  const { LoginCommand } = await import('@application/commands/login.command');
-  const { LoginUseCase } = await import('@application/use-cases/login.use-case');
+  const { container, TOKENS } = await import('@api/infrastructure/config/container');
+  const { LoginCommand } = await import('@api/application/commands/login.command');
+  const { LoginUseCase } = await import('@api/application/use-cases/login.use-case');
 
   const formData = await request.formData();
 
@@ -43,9 +42,10 @@ export async function action({ request }: ActionFunctionArgs) {
     const loginCommand = LoginCommand.fromFormData(formData);
 
     // ユースケース実行
-    const loginUseCase = container.resolve<LoginUseCase>(TOKENS.LoginUseCase);
+    const loginUseCase = container.resolve(TOKENS.LoginUseCase) as InstanceType<
+      typeof LoginUseCase
+    >;
     const result = await loginUseCase.execute(loginCommand);
-
 
     if (result.success && result.user && result.session) {
       // セッションCookieを設定してダッシュボードにリダイレクト
@@ -59,7 +59,7 @@ export async function action({ request }: ActionFunctionArgs) {
     } else {
       return { error: result.error || 'ログインに失敗しました' };
     }
-  } catch (error) {
+  } catch (_error) {
     return { error: 'ログインに失敗しました。再度お試しください。' };
   }
 }
@@ -161,8 +161,10 @@ export default function Login() {
 
         <div className="text-center">
           <p className="text-sm text-gray-600">
-            テスト用アカウント:<br />
-            メール: admin@example.com<br />
+            テスト用アカウント:
+            <br />
+            メール: admin@example.com
+            <br />
             パスワード: Admin123 (最初のAは大文字)
           </p>
         </div>

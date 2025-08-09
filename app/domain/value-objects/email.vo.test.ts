@@ -24,8 +24,8 @@ describe('Email', () => {
     });
 
     it('nullやundefinedの場合はエラーになる', () => {
-      expect(() => Email.create(null as any)).toThrow(EmailInvalidError);
-      expect(() => Email.create(undefined as any)).toThrow(EmailInvalidError);
+      expect(() => Email.create(null as unknown as string)).toThrow(EmailInvalidError);
+      expect(() => Email.create(undefined as unknown as string)).toThrow(EmailInvalidError);
     });
 
     it('無効なフォーマットの場合はエラーになる', () => {
@@ -36,7 +36,7 @@ describe('Email', () => {
     });
 
     it('254文字を超える場合はエラーになる', () => {
-      const longEmail = 'a'.repeat(250) + '@example.com';
+      const longEmail = `${'a'.repeat(250)}@example.com`;
       expect(() => Email.create(longEmail)).toThrow(EmailInvalidError);
       expect(() => Email.create(longEmail)).toThrow('Email is too long');
     });

@@ -187,66 +187,41 @@
 
 ## 4. ディレクトリ構造
 
-### 現在の構造（フロントエンドのみ）
+### 現在の構造
 ```
 /
 ├── docs/                  # 仕様書（必須）
 │   └── 機能名-spec.md
 ├── development-process/    # 開発プロセス記録（必須）
 │   └── 機能名-process.md
-├── app/                   # React Router アプリケーション
-│   ├── components/        # 共通コンポーネント
-│   ├── routes/           # ページコンポーネント
-│   ├── hooks/            # カスタムフック
-│   ├── utils/            # ユーティリティ関数
-│   ├── types/            # 型定義
-│   ├── test/             # テスト関連
-│   └── welcome/          # ウェルカム画面関連
+├── app/                   # アプリケーションディレクトリ
+│   ├── web/              # フロントエンド（React Router）
+│   │   ├── routes/       # ページコンポーネント
+│   │   ├── components/   # 共通コンポーネント
+│   │   ├── hooks/        # カスタムフック
+│   │   ├── utils/        # ユーティリティ関数
+│   │   ├── types/        # 型定義
+│   │   └── app.css       # スタイル
+│   ├── api/              # バックエンドAPI（将来実装時）
+│   │   ├── application/  # Usecase層
+│   │   ├── controllers/  # HTTPコントローラー
+│   │   ├── infrastructure/ # インフラ層
+│   │   ├── dtos/        # Data Transfer Objects
+│   │   └── middlewares/  # ミドルウェア
+│   ├── domain/           # ドメイン層（共有）
+│   │   ├── entities/     # エンティティ
+│   │   ├── repositories/ # リポジトリI/F
+│   │   ├── services/     # ドメインサービス
+│   │   └── value-objects/ # 値オブジェクト
+│   ├── shared/           # 共有ユーティリティ
+│   │   ├── errors/       # カスタムエラー
+│   │   └── types/        # 共通型定義
+│   ├── root.tsx          # エントリーポイント
+│   └── routes.ts         # ルーティング設定
 ├── public/               # 静的ファイル
-├── .vscode/              # VSCode設定
+├── prisma/               # Prismaスキーマ
+├── reports/              # 分析レポート
 └── 設定ファイル群
-```
-
-### 将来の構造（サーバーサイド追加時）
-```
-/
-├── docs/                  # 仕様書（必須）
-│   ├── api/              # APIサーバー仕様
-│   └── web/              # ウェブアプリ仕様
-├── development-process/   # 開発プロセス記録（必須）
-│   ├── api/              # APIサーバー開発記録
-│   └── web/              # ウェブアプリ開発記録
-├── apps/
-│   ├── web/               # 現在のappディレクトリの内容を移動
-│   │   └── app/
-│   │       ├── components/
-│   │       ├── routes/
-│   │       └── ...
-│   └── api/               # バックエンドAPI (Express/NestJS等)
-│       └── src/
-│           ├── application/      # Usecase層
-│           │   └── user.use-case.ts
-│           ├── controllers/      # HTTPコントローラー
-│           │   └── user.controller.ts
-│           ├── infrastructure/   # インフラ層
-│           │   ├── persistence/  # DB実装
-│           │   └── services/     # 外部API
-│           ├── dtos/            # Data Transfer Objects
-│           ├── middlewares/      # ミドルウェア
-│           ├── main.ts          # エントリーポイント
-│           └── env.ts           # 環境変数定義
-├── packages/
-│   └── core/              # 共有コアロジック
-│       └── src/
-│           ├── domain/          # ドメイン層
-│           │   ├── entities/    # エンティティ
-│           │   ├── repositories/ # リポジトリI/F
-│           │   ├── services/    # ドメインサービス
-│           │   └── value-objects/ # 値オブジェクト
-│           └── shared/          # 共有ユーティリティ
-│               ├── errors/      # カスタムエラー
-│               └── types/       # 共通型定義
-└── oas/                   # OpenAPI仕様
 ```
 
 ## 5. コーディング規約
@@ -285,26 +260,26 @@
 
 ## 6. 各レイヤーの責務
 
-### Domain層（packages/core/src/domain）
+### Domain層（app/domain）
 - **entities**: ビジネスエンティティ（状態と振る舞い）
 - **repositories**: データ永続化のインターフェース定義
 - **services**: ドメインサービス
 - **value-objects**: 値オブジェクト
 - **ルール**: フレームワーク非依存、純粋なTypeScript
 
-### Application層（apps/api/src/application）
+### Application層（app/api/application）
 - **責務**: ユースケースの実装
 - **ルール**: 
   - DIによる依存性注入
   - フレームワーク固有オブジェクト（req, res）に依存しない
   - ドメインエンティティを利用してビジネスフローを構築
 
-### Infrastructure層（apps/api/src/infrastructure）
+### Infrastructure層（app/api/infrastructure）
 - **persistence**: DB実装（Prisma, TypeORM等）
 - **services**: 外部APIクライアント
 - **責務**: リポジトリインターフェースの実装
 
-### Controller層（apps/api/src/controllers）
+### Controller層（app/api/controllers）
 - **責務**: HTTPリクエスト/レスポンスの処理
 - **ルール**:
   - リクエストバリデーション
@@ -319,9 +294,9 @@
 3. テストファイルを作成（`*.test.ts`）
 4. テストが失敗することを確認
 5. `app/routes.ts`にルーティングを追加（必要に応じて）
-6. `app/routes/`にページコンポーネントを実装
-7. `app/components/`に共通コンポーネントを実装（必要に応じて）
-8. `app/utils/`または`app/hooks/`にロジックを実装
+6. `app/web/routes/`にページコンポーネントを実装
+7. `app/web/components/`に共通コンポーネントを実装（必要に応じて）
+8. `app/web/utils/`または`app/web/hooks/`にロジックを実装
 9. テストが成功することを確認
 10. リファクタリング（必要に応じて）
 
@@ -331,12 +306,12 @@
 3. `oas/`にOpenAPI仕様を定義
 4. テストファイルを作成（各レイヤー毎に）
 5. テストが失敗することを確認
-6. `packages/core/src/domain/entities/`にエンティティを定義
-7. `packages/core/src/domain/repositories/`にリポジトリI/Fを定義
-8. `apps/api/src/application/`にUsecaseを実装
-9. `apps/api/src/infrastructure/`にリポジトリ実装
-10. `apps/api/src/controllers/`にコントローラーを実装
-11. `apps/api/src/main.ts`でDIとルーティング設定
+6. `app/domain/entities/`にエンティティを定義
+7. `app/domain/repositories/`にリポジトリI/Fを定義
+8. `app/api/application/`にUsecaseを実装
+9. `app/api/infrastructure/`にリポジトリ実装
+10. `app/api/controllers/`にコントローラーを実装
+11. `app/api/main.ts`でDIとルーティング設定
 12. テストが成功することを確認
 13. リファクタリング（必要に応じて）
 

@@ -38,15 +38,17 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     // DDD Architecture imports
-    const { container, TOKENS } = await import('@infrastructure/config/container');
-    const { LogoutCommand } = await import('@application/commands/logout.command');
-    const { LogoutUseCase } = await import('@application/use-cases/logout.use-case');
+    const { container, TOKENS } = await import('@api/infrastructure/config/container');
+    const { LogoutCommand } = await import('@api/application/commands/logout.command');
+    const { LogoutUseCase } = await import('@api/application/use-cases/logout.use-case');
 
     // コマンドオブジェクト作成
     const logoutCommand = LogoutCommand.fromRequest(request);
 
     // ユースケース実行
-    const logoutUseCase = container.resolve<LogoutUseCase>(TOKENS.LogoutUseCase);
+    const logoutUseCase = container.resolve(TOKENS.LogoutUseCase) as InstanceType<
+      typeof LogoutUseCase
+    >;
     const result = await logoutUseCase.execute(logoutCommand);
 
     console.log('Logout result:', { success: result.success });

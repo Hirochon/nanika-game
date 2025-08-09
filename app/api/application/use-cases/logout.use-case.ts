@@ -1,5 +1,5 @@
-import type { LogoutCommand } from '@application/commands/logout.command';
-import { LogoutResult } from '@application/results/logout.result';
+import type { LogoutCommand } from '@api/application/commands/logout.command';
+import { LogoutResult } from '@api/application/results/logout.result';
 import type { SessionService } from '@domain/services/session.service';
 
 export class LogoutUseCase {

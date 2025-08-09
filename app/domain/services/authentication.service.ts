@@ -15,7 +15,7 @@ export class AuthenticationService {
     }
 
     const isAuthenticated = await user.authenticate(password);
-    
+
     if (!isAuthenticated) {
       throw new AuthenticationFailedError('Invalid email or password');
     }

@@ -67,7 +67,12 @@ export class PrismaSessionRepository implements ISessionRepository {
     });
   }
 
-  private toDomain(session: any): Session {
+  private toDomain(session: {
+    id: string;
+    userId: number;
+    expiresAt: Date;
+    createdAt: Date;
+  }): Session {
     const props: SessionProps = {
       token: SessionToken.create(session.id),
       userId: UserId.create(session.userId),

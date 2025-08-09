@@ -80,7 +80,12 @@
       "linter": {
         "rules": {
           "correctness": {
-            "noUnusedVariables": "warn"
+            "noUnusedVariables": {
+              "level": "warn",
+              "options": {
+                "ignoreRestSiblings": true
+              }
+            }
           }
         }
       }

@@ -12,18 +12,22 @@ export interface AuthResponse {
   error?: string;
 }
 
+export interface CurrentUserResponse {
+  success: boolean;
+  user?: User | null;
+  error?: string;
+}
+
 /**
- * サーバーサイド用Mock authentication API
+ * Mock authentication API for development
  */
-export const mockAuthServerApi = {
+export const mockAuthApi = {
   /**
-   * サーバーサイド用ログイン機能
+   * Mock login functionality
    */
   async login(data: LoginFormData): Promise<AuthResponse> {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 500));
-
-    console.log('Server-side login attempt:', data);
 
     // Mock users database
     const users = [
@@ -34,9 +38,10 @@ export const mockAuthServerApi = {
     const user = users.find((u) => u.email === data.email && u.password === data.password);
 
     if (user) {
-      const { password, ...userWithoutPassword } = user;
+      const { password: _password, ...userWithoutPassword } = user;
 
-      console.log('Login successful:', userWithoutPassword);
+      // Store user in localStorage for session persistence
+      localStorage.setItem('nanika_game_user', JSON.stringify(userWithoutPassword));
 
       return {
         success: true,
@@ -44,7 +49,6 @@ export const mockAuthServerApi = {
       };
     }
 
-    console.log('Login failed: invalid credentials');
     return {
       success: false,
       error: 'メールアドレスまたはパスワードが正しくありません',
@@ -52,7 +56,7 @@ export const mockAuthServerApi = {
   },
 
   /**
-   * サーバーサイド用登録機能
+   * Mock registration functionality
    */
   async register(data: RegisterFormData): Promise<AuthResponse> {
     // Simulate network delay
@@ -82,9 +86,51 @@ export const mockAuthServerApi = {
       email: data.email,
     };
 
+    // Store user in localStorage
+    localStorage.setItem('nanika_game_user', JSON.stringify(newUser));
+
     return {
       success: true,
       user: newUser,
     };
+  },
+
+  /**
+   * Get current user from session
+   */
+  async getCurrentUser(): Promise<CurrentUserResponse> {
+    // Simulate network delay
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const userStr = localStorage.getItem('nanika_game_user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr) as User;
+        return {
+          success: true,
+          user,
+        };
+      } catch {
+        // Invalid stored user data
+        localStorage.removeItem('nanika_game_user');
+      }
+    }
+
+    return {
+      success: true,
+      user: null,
+    };
+  },
+
+  /**
+   * Logout and clear session
+   */
+  async logout(): Promise<{ success: boolean }> {
+    // Simulate network delay
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    localStorage.removeItem('nanika_game_user');
+
+    return { success: true };
   },
 };

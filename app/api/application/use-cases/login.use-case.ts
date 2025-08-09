@@ -1,5 +1,5 @@
-import type { LoginCommand } from '@application/commands/login.command';
-import { LoginResult } from '@application/results/login.result';
+import type { LoginCommand } from '@api/application/commands/login.command';
+import { LoginResult } from '@api/application/results/login.result';
 import type { AuthenticationService } from '@domain/services/authentication.service';
 import type { SessionService } from '@domain/services/session.service';
 

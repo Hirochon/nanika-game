@@ -1,3 +1,4 @@
+import type { ActionFunctionArgs } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { action as dashboardAction } from './dashboard';
 
@@ -5,8 +6,12 @@ describe('Dashboard Logout Functionality', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // コンソールログをモック
-    vi.spyOn(console, 'log').mockImplementation(() => {});
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'log').mockImplementation(() => {
+      // Intentionally empty for testing
+    });
+    vi.spyOn(console, 'error').mockImplementation(() => {
+      // Intentionally empty for testing
+    });
   });
 
   describe('Logout Action', () => {
@@ -22,12 +27,16 @@ describe('Dashboard Logout Functionality', () => {
         },
       });
 
-      const result = await dashboardAction({ request });
+      const result = await dashboardAction({
+        request,
+        params: {},
+        context: {},
+      } as ActionFunctionArgs);
 
-      expect(result.status).toBe(302);
-      expect(result.headers.get('Location')).toBe('/login');
+      expect((result as Response).status).toBe(302);
+      expect((result as Response).headers.get('Location')).toBe('/login');
 
-      const setCookie = result.headers.get('Set-Cookie');
+      const setCookie = (result as Response).headers.get('Set-Cookie');
       expect(setCookie).toContain('nanika_game_user=');
       expect(setCookie).toContain('Max-Age=0');
     });
@@ -37,10 +46,14 @@ describe('Dashboard Logout Functionality', () => {
         method: 'POST',
       });
 
-      const result = await dashboardAction({ request });
+      const result = await dashboardAction({
+        request,
+        params: {},
+        context: {},
+      } as ActionFunctionArgs);
 
-      expect(result.status).toBe(302);
-      expect(result.headers.get('Location')).toBe('/login');
+      expect((result as Response).status).toBe(302);
+      expect((result as Response).headers.get('Location')).toBe('/login');
     });
 
     it('should only accept POST method for logout', async () => {
@@ -49,10 +62,14 @@ describe('Dashboard Logout Functionality', () => {
       });
 
       try {
-        await dashboardAction({ request: getRequest });
+        await dashboardAction({
+          request: getRequest,
+          params: {},
+          context: {},
+        } as ActionFunctionArgs);
         expect.fail('Should throw error for GET request');
-      } catch (error: any) {
-        expect(error.status).toBe(405);
+      } catch (error) {
+        expect((error as Response).status).toBe(405);
       }
     });
 
@@ -64,9 +81,13 @@ describe('Dashboard Logout Functionality', () => {
         },
       });
 
-      const result = await dashboardAction({ request });
+      const result = await dashboardAction({
+        request,
+        params: {},
+        context: {},
+      } as ActionFunctionArgs);
 
-      const setCookie = result.headers.get('Set-Cookie');
+      const setCookie = (result as Response).headers.get('Set-Cookie');
 
       expect(setCookie).toContain('HttpOnly');
       expect(setCookie).toContain('Path=/');
@@ -79,7 +100,11 @@ describe('Dashboard Logout Functionality', () => {
       });
 
       const startTime = Date.now();
-      await dashboardAction({ request });
+      await dashboardAction({
+        request,
+        params: {},
+        context: {},
+      } as ActionFunctionArgs);
       const endTime = Date.now();
 
       const processingTime = endTime - startTime;

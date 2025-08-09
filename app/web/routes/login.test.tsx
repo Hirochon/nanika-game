@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateLoginForm } from '~/utils/validation';
+import { validateLoginForm } from '~/web/utils/validation';
 
 describe('Login Component Logic', () => {
   it('should validate login form data correctly', () => {

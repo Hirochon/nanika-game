@@ -1,7 +1,8 @@
 import { User } from '@domain/entities/user.entity';
 import type { IUserRepository } from '@domain/repositories/user.repository';
 import type { Email } from '@domain/value-objects/email.vo';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { UserId } from '@domain/value-objects/user-id.vo';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
   AuthenticationFailedError,
   AuthenticationService,
@@ -12,7 +13,7 @@ import {
 class MockUserRepository implements IUserRepository {
   private users: User[] = [];
 
-  async findById(id: any): Promise<User | null> {
+  async findById(id: UserId): Promise<User | null> {
     return this.users.find((user) => user.id.equals(id)) || null;
   }
 
@@ -29,7 +30,7 @@ class MockUserRepository implements IUserRepository {
     }
   }
 
-  async delete(id: any): Promise<void> {
+  async delete(id: UserId): Promise<void> {
     this.users = this.users.filter((user) => !user.id.equals(id));
   }
 
@@ -93,7 +94,7 @@ describe('AuthenticationService', () => {
       // リポジトリに保存されているかを確認
       const savedUser = await mockUserRepository.findByEmail(user.email);
       expect(savedUser).not.toBeNull();
-      expect(savedUser!.name).toBe('新規ユーザー');
+      expect(savedUser?.name).toBe('新規ユーザー');
     });
 
     it('既存のメールアドレスの場合はエラーになる', async () => {

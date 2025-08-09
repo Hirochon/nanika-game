@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { useAuth } from '~/hooks/useAuth';
-import { type RegisterFormData, validateRegisterForm } from '~/utils/validation';
+// import { useAuth } from '~/web/hooks/useAuth'; // TODO: register機能をuseAuthに追加
+import { type RegisterFormData, validateRegisterForm } from '~/web/utils/validation';
 
 export default function Register() {
   const [formData, setFormData] = useState<RegisterFormData>({
@@ -12,8 +12,10 @@ export default function Register() {
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  const { register, isLoading, error } = useAuth();
+  // const { register, isLoading, error } = useAuth(); // TODO: register機能実装後に有効化
   const navigate = useNavigate();
+  const isLoading = false; // TODO: 実装後に削除
+  const error = null; // TODO: 実装後に削除
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,16 +28,18 @@ export default function Register() {
       return;
     }
 
-    // Attempt registration
-    const success = await register(formData);
-    if (success) {
-      navigate('/dashboard');
-    }
+    // TODO: Attempt registration
+    // const success = await register(formData);
+    // if (success) {
+    //   navigate('/dashboard');
+    // }
+    console.log('Registration form submitted:', formData);
+    navigate('/login'); // 仮実装: ログイン画面へリダイレクト
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData((prev: RegisterFormData) => ({
       ...prev,
       [name]: value,
     }));

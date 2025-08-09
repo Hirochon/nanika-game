@@ -57,14 +57,21 @@ export class PrismaUserRepository implements IUserRepository {
     });
   }
 
-  private toDomain(user: any): User {
+  private toDomain(user: {
+    id: number;
+    name: string;
+    email: string;
+    passwordHash: string;
+    createdAt: Date;
+    updatedAt: Date | null;
+  }): User {
     const props: UserProps = {
       id: UserId.create(user.id),
       name: user.name,
       email: Email.create(user.email),
       password: Password.fromHash(user.passwordHash),
       createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
+      updatedAt: user.updatedAt || new Date(),
     };
 
     return User.reconstruct(props);
