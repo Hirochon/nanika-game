@@ -8,9 +8,16 @@ export function validateEmail(email: string): boolean {
 
 /**
  * Password validation utility
- * Must be at least 8 characters and contain uppercase, lowercase letters and numbers
+ * For registration: Must be at least 8 characters and contain uppercase, lowercase letters and numbers
+ * For login: Must be at least 6 characters (less strict for existing users)
  */
-export function validatePassword(password: string): boolean {
+export function validatePassword(password: string, strict: boolean = true): boolean {
+  // For login, we only check minimum length (6 characters, matching Password VO)
+  if (!strict) {
+    return password.length >= 6;
+  }
+  
+  // For registration, we enforce stricter rules
   if (password.length < 8) return false;
 
   const hasUpperCase = /[A-Z]/.test(password);
@@ -44,9 +51,8 @@ export function validateLoginForm(data: LoginFormData): ValidationResult {
 
   if (!data.password) {
     errors.password = 'Password is required';
-  } else if (!validatePassword(data.password)) {
-    errors.password =
-      'Password must be at least 8 characters with uppercase, lowercase letters and numbers';
+  } else if (!validatePassword(data.password, false)) { // Use non-strict validation for login
+    errors.password = 'Password must be at least 6 characters';
   }
 
   return {

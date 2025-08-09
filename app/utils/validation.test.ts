@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   validateEmail,
-  validatePassword,
   validateLoginForm,
+  validatePassword,
   validateRegisterForm,
 } from './validation';
 
