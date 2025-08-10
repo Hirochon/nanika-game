@@ -1,5 +1,7 @@
 # Nanika Game - Claude協業ガイドライン
 
+このファイルは、Claude Code（claude.ai/code）がこのリポジトリで作業する際のガイダンスを提供します。
+
 ## 1. プロジェクト概要
 
 このプロジェクトは、React RouterをフロントエンドフレームワークとしたWebアプリケーションです。
@@ -13,11 +15,11 @@
 
 1. **仕様書ファースト（Specification First）**
    - いかなる実装も仕様書なしに開始してはならない
-   - 仕様書は`docs/`ディレクトリに作成すること
+   - 仕様書は`.claude/00_project/docs/`ディレクトリに作成すること
    - 仕様書のファイル名: `機能名-spec.md`
 
 2. **開発プロセスの文書化**
-   - 仕様書作成後、`development-process/`ディレクトリに実装計画を記述
+   - 仕様書作成後、`.claude/00_project/development-process/`ディレクトリに実装計画を記述
    - ファイル名: `機能名-process.md`
    - 実装の各ステップを詳細に記載
 
@@ -40,9 +42,9 @@
 ### 開発フロー（この順序は絶対）
 
 ```
-1. docs/機能名-spec.md を作成
+1. .claude/00_project/docs/機能名-spec.md を作成
    ↓
-2. development-process/機能名-process.md を作成
+2. .claude/00_project/development-process/機能名-process.md を作成
    ↓
 3. テストコードを作成（*.test.ts）
    ↓
@@ -55,7 +57,7 @@
 7. リファクタリング（必要に応じて）
 ```
 
-### 仕様書テンプレート（docs/機能名-spec.md）
+### 仕様書テンプレート（.claude/00_project/docs/機能名-spec.md）
 
 ```markdown
 # [機能名] 仕様書
@@ -77,7 +79,7 @@
 想定されるエラーとその処理
 ```
 
-### 開発プロセステンプレート（development-process/機能名-process.md）
+### 開発プロセステンプレート（.claude/00_project/development-process/機能名-process.md）
 
 ```markdown
 # [機能名] 開発プロセス
@@ -177,6 +179,8 @@
 
 ## 3. アーキテクチャ設計思想
 
+このプロジェクトは**DDD（ドメイン駆動設計）とクリーンアーキテクチャ**に従います。
+
 ### 基本原則
 - **クリーンアーキテクチャ**: 関心事の分離を徹底し、依存関係の方向を常に内側（ドメイン）に向ける
 - **依存性のルール**: 
@@ -185,15 +189,29 @@
 - **テスト可能性**: すべてのビジネスロジックは独立してテスト可能に
 - **TDD**: テスト駆動開発を必須とする
 
+### 主要な設計パターン
+
+1. **リポジトリパターン**: インターフェースの背後でデータアクセスを抽象化
+2. **ユースケースパターン**: 各ビジネス操作は個別のユースケース
+3. **値オブジェクト**: バリデーションをカプセル化
+4. **Server/Client コンポーネント分離**: パフォーマンスの最適化
+5. **複合コンポーネント**: 複雑なUI用
+
 ## 4. ディレクトリ構造
 
 ### 現在の構造
 ```
 /
-├── docs/                  # 仕様書（必須）
-│   └── 機能名-spec.md
-├── development-process/    # 開発プロセス記録（必須）
-│   └── 機能名-process.md
+├── .claude/               # プロジェクトドキュメント
+│   ├── 00_project/       # プロジェクトコンセプトと要件
+│   │   ├── docs/        # 仕様書（必須）
+│   │   │   └── 機能名-spec.md
+│   │   ├── development-process/ # 開発プロセス記録（必須）
+│   │   │   └── 機能名-process.md
+│   │   └── reports/     # 分析レポート
+│   ├── 01_development_docs/ # 技術設計ドキュメント
+│   ├── 02_design_system/ # デザインシステム
+│   └── 03_library_docs/  # ライブラリドキュメント
 ├── app/                   # アプリケーションディレクトリ
 │   ├── web/              # フロントエンド（React Router）
 │   │   ├── routes/       # ページコンポーネント
@@ -220,7 +238,6 @@
 │   └── routes.ts         # ルーティング設定
 ├── public/               # 静的ファイル
 ├── prisma/               # Prismaスキーマ
-├── reports/              # 分析レポート
 └── 設定ファイル群
 ```
 
@@ -289,8 +306,8 @@
 ## 7. 新機能追加フロー
 
 ### フロントエンド機能（この順序を厳守）
-1. `docs/機能名-spec.md` で仕様書を作成
-2. `development-process/機能名-process.md` で実装プロセスを記録
+1. `.claude/00_project/docs/機能名-spec.md` で仕様書を作成
+2. `.claude/00_project/development-process/機能名-process.md` で実装プロセスを記録
 3. テストファイルを作成（`*.test.ts`）
 4. テストが失敗することを確認
 5. `app/routes.ts`にルーティングを追加（必要に応じて）
@@ -300,9 +317,9 @@
 9. テストが成功することを確認
 10. リファクタリング（必要に応じて）
 
-### バックエンドAPI（将来・この順序を厳守）
-1. `docs/api/機能名-spec.md` で仕様書を作成
-2. `development-process/api/機能名-process.md` で実装プロセスを記録
+### バックエンドAPI（この順序を厳守）
+1. `.claude/00_project/docs/api/機能名-spec.md` で仕様書を作成
+2. `.claude/00_project/development-process/api/機能名-process.md` で実装プロセスを記録
 3. `oas/`にOpenAPI仕様を定義
 4. テストファイルを作成（各レイヤー毎に）
 5. テストが失敗することを確認
@@ -344,17 +361,87 @@
 - any型の使用
 - ビジネスロジックのController層への記述
 
-## 10. 必須ツール
+## 10. 開発コマンド
+
+```bash
+# 開発
+npm run dev
+
+# 品質チェック（コミット前に実行）
+npm run format            # Biomeフォーマット
+npm run lint              # Biome Lint
+npm run typecheck         # TypeScript型チェック
+npm run test              # Vitestテスト実行
+
+# ビルド
+npm run build             # プロダクションビルド
+
+# データベースコマンド
+# npm run db:migrate      # マイグレーション実行
+# npm run db:seed         # テストデータ投入
+```
+
+## 11. 必須ツール
+
 - **Biome**: フォーマッター・リンター
 - **Vitest**: テスト
 - **TypeScript**: 型チェック
 - **React Router**: フロントエンドフレームワーク
 
-## 11. 開発前チェックリスト
+## 12. 環境セットアップ
+
+### 初期セットアップ
+1. 依存関係のインストール
+   ```bash
+   npm install
+   ```
+
+2. 環境変数の設定（必要に応じて）
+   ```bash
+   cp .env.example .env.local
+   ```
+
+3. 開発サーバーの起動
+   ```bash
+   npm run dev
+   ```
+
+### データベース環境設定
+- `.env.local`にデータベース接続情報を設定
+- Prisma/Supabaseクライアントの初期化
+- マイグレーションの実行
+
+## 13. コアビジネスエンティティ
+
+### 現在のエンティティ
+- **User**: ゲームプレイヤー
+- **Game**: ゲームセッション
+- **Character**: ゲーム内キャラクター
+
+### 追加エンティティ
+- **Item**: ゲーム内アイテム
+- **Achievement**: 実績システム
+- **Leaderboard**: ランキング機能
+- **SaveData**: セーブデータ管理
+
+## 14. テスト戦略
+
+このプロジェクトは**TDD（テスト駆動開発）**と**ゼロ警告ポリシー**に従います。
+
+```
+__tests__/
+├── unit/                 # 高速な単体テスト（ドメイン層90%カバレッジ目標）
+├── integration/          # APIとリポジトリのテスト
+└── fixtures/            # テストデータとモック
+```
+
+テストを先に書き、テスト実行中のコンソール警告/エラーをゼロにします。
+
+## 15. 開発前チェックリスト
 
 ### 🔥 開発プロセス確認（必須）
-- [ ] `docs/機能名-spec.md` が作成済み
-- [ ] `development-process/機能名-process.md` が作成済み
+- [ ] `.claude/00_project/docs/機能名-spec.md` が作成済み
+- [ ] `.claude/00_project/development-process/機能名-process.md` が作成済み
 - [ ] 全ての作業項目にプログレス記号（⏸️、🔍等）が付与済み
 - [ ] テストファイルが作成済み
 - [ ] テストが失敗することを確認済み
@@ -367,9 +454,105 @@
 - [ ] エラーハンドリングの実装確認
 - [ ] 適切なレイヤーへの配置確認
 
-## 12. 🚀 コミュニケーション効率化・改善プロセス
+## 16. データベーススキーマ
 
-**参照**: `reports/communication-improvement-analysis.md`
+PostgreSQL/Prisma/Supabaseを使用予定。以下の設計原則に従う：
+
+### 主要テーブル構造
+- `users`: ユーザーアカウント
+- `games`: ゲームセッション
+- `characters`: キャラクター情報
+- `items`: アイテムマスターデータ
+- `user_items`: ユーザー所持アイテム
+
+### 設計原則
+- すべてのテーブルはUUID主キーを使用
+- `created_at`、`updated_at`タイムスタンプを標準装備
+- `deleted_at`によるソフトデリート実装
+- 外部キー制約による参照整合性の保証
+- インデックスによるクエリ最適化
+
+### マイグレーション戦略
+```bash
+# npm run db:generate     # DBからTypeScript型を生成
+# npm run db:migrate      # マイグレーション適用
+# npm run db:seed         # テストデータ投入
+```
+
+## 17. 重要な設計上の決定
+
+1. **型安全性**: `any`型を使用しない厳密なTypeScript
+2. **エラーハンドリング**: カスタムエラークラスを使用した構造化エラー処理
+3. **パフォーマンス**: 必要に応じてコード分割と遅延読み込みを使用
+4. **アクセシビリティ**: WCAG 2.1 AA準拠を目指す
+5. **レスポンシブデザイン**: モバイルファーストアプローチ
+6. **SEOファースト**: 重要ページは適切なメタタグでサーバーレンダリング
+7. **最小限の入力**: ユーザー登録に必要な情報を最小限に
+8. **プログレッシブエンハンスメント**: 基本機能はJavaScript無効でも動作
+
+## 18. API設計
+
+一貫したレスポンス形式のRESTfulエンドポイント：
+```json
+{
+  "success": true,
+  "data": { ... },
+  "meta": { "timestamp": "..." }
+}
+```
+
+エラーレスポンス：
+```json
+{
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "ユーザーフレンドリーなメッセージ"
+  }
+}
+```
+
+## 19. フロントエンドガイドライン
+
+### 基本原則
+- **Server Components優先**: デフォルトでServer Componentsを使用
+- **Client Components**: 必要な場合のみ`'use client'`を使用（フォーム、インタラクティブ性）
+- **コンポーネント設計**: 再利用性のためにジェネリックコンポーネント + アダプターパターン
+- **スタイリング**: Tailwind CSSとCVA（Class Variance Authority）を使用
+- **状態管理**: 必要最小限のグローバル状態、ローカル状態を優先
+
+### UIコンポーネント規約
+- 適切なローディングとエラー状態を実装
+- モバイルファーストのレスポンシブデザイン
+- アクセシビリティ属性（aria-label、role等）を適切に設定
+- フォームには適切なバリデーションとエラーメッセージ
+- 複合コンポーネントパターン（Card.Header、Card.Body等）を活用
+
+### パフォーマンス最適化
+- 画像の遅延読み込み（lazy loading）
+- コード分割（dynamic import）
+- メモ化（React.memo、useMemo、useCallback）の適切な使用
+- 仮想スクロール（大量リスト表示時）
+
+### React Routerベストプラクティス
+- ルート定義は`app/routes.ts`に集約
+- ローダー/アクションパターンの活用
+- エラーバウンダリーの実装
+- 適切なメタデータ設定（title、description）
+
+## 20. 避けるべき一般的な落とし穴
+
+1. ServerとClient Components間でクラスインスタンスを渡さない（プレーンオブジェクトにシリアライズ）
+2. `grep`や`find`コマンドを使わない - 代わりにGrep/Globツールを使用
+3. ファイルを書く前に必ず存在を確認（WriteよりEditを優先）
+4. コードをコミットする前に`npm run format && npm run lint && npm run typecheck`を実行
+5. コンポーネントは小さく、単一責任に集中させる
+6. console.logの本番コード残留を避ける
+7. コメントアウトされたコードの残留を避ける
+
+## 21. 🚀 コミュニケーション効率化・改善プロセス
+
+**参照**: `.claude/00_project/reports/communication-improvement-analysis.md`
 
 ### 実装前必須フェーズ
 
@@ -451,7 +634,7 @@
 - **技術的問題の事前回避率**: 90%以上
 - **仕様書・ログの即時更新率**: 100%
 
-## 13. 📋 プログレス管理システム（必須遵守）
+## 22. 📋 プログレス管理システム（必須遵守）
 
 ### プログレス記号の定義と使用条件
 
@@ -663,7 +846,7 @@ X. ⏸️ [作業名] (中断理由: [具体的な理由]) - 中断時点: [ど�
 - YYYY-MM-DD: プロセス計画作成（プログレス管理開始）
 ```
 
-## 14. ⏸️ 保留理由の明記ルール（新規追加）
+## 23. ⏸️ 保留理由の明記ルール（新規追加）
 
 ### 保留中と未実装の明確な区別
 
@@ -806,6 +989,123 @@ X. ⏸️ [機能名] (理由: [具体的な保留理由]) - 再開条件: [再�
 - 📋 ユーザープロフィール編集機能 (app/routes/profile.tsx)
 - 📋 検索・フィルター機能 (app/components/SearchFilter.tsx)
 ```
+
+## 24. プロジェクトドキュメントガイド
+
+プロジェクトには`.claude/`ディレクトリに包括的なドキュメントがあります。各ドキュメントをいつ参照すべきかを示します。
+
+### 📋 00_project - プロジェクトコンセプトと要件
+
+#### ビジネス要件
+- **`.claude/00_project/01_nanika_concept_requirements.md`** - ビジネス要件と機能仕様
+- **`.claude/00_project/02_inception_deck.md`** - プロジェクトビジョンと目標
+- **使用する場面**: ビジネスロジック、機能要件、またはプロジェクト目標の理解時
+
+#### 仕様書と開発プロセス
+- **`.claude/00_project/docs/機能名-spec.md`** - 各機能の仕様書
+- **`.claude/00_project/development-process/機能名-process.md`** - 各機能の開発プロセスとプログレス管理
+- **使用する場面**: 新機能実装、TDDプロセス、進捗管理時
+
+#### 分析・改善レポート
+- **`.claude/00_project/reports/communication-improvement-analysis.md`** - コミュニケーション改善分析
+- **`.claude/00_project/reports/performance/`** - パフォーマンス分析レポート
+- **使用する場面**: 開発プロセスの改善検討、パフォーマンス最適化時
+
+### 🏗️ 01_development_docs - 技術設計ドキュメント
+
+#### システムアーキテクチャ
+- **`.claude/01_development_docs/01_architecture_design.md`** - DDDとクリーンアーキテクチャの実装詳細
+- **使用する場面**: レイヤーの責任の理解、新機能の追加、リファクタリング時
+
+#### データベース設計
+- **`.claude/01_development_docs/02_database_design.md`** - 完全なER図とテーブル定義
+- **使用する場面**: データベースクエリの作業、新しいテーブル/カラムの追加、関係の理解時
+
+#### API設計
+- **`.claude/01_development_docs/03_api_design.md`** - RESTful APIエンドポイントと契約
+- **使用する場面**: 新しいエンドポイントの実装、リクエスト/レスポンス形式の理解時
+
+#### フロントエンド設計
+- **`.claude/01_development_docs/04_screen_transition_design.md`** - 画面フローとUI構造
+- **`.claude/01_development_docs/10_frontend_design.md`** - コンポーネントパターンとフロントエンドアーキテクチャ
+- **使用する場面**: 新しいページの作成、UIコンポーネントの実装、ナビゲーションの理解時
+
+#### SEO要件
+- **`.claude/01_development_docs/05_seo_requirements.md`** - SEO最適化戦略
+- **使用する場面**: SEOを考慮したページの実装、メタタグの作業時
+
+#### エラーハンドリング
+- **`.claude/01_development_docs/06_error_handling_design.md`** - エラーハンドリングパターンと戦略
+- **使用する場面**: エラーハンドリングの実装、カスタムエラークラスの作成時
+
+#### 型定義
+- **`.claude/01_development_docs/07_type_definitions.md`** - TypeScript型システム設計
+- **使用する場面**: 新しい型の作成、ドメインモデルの理解時
+
+#### 開発セットアップ
+- **`.claude/01_development_docs/08_development_setup.md`** - 環境セットアップと開発ワークフロー
+- **使用する場面**: ローカル環境のセットアップ、開発コマンドの理解時
+
+#### テスト戦略
+- **`.claude/01_development_docs/09_test_strategy.md`** - TDDアプローチとテストパターン
+- **使用する場面**: テストの作成、テスト構造の理解、TDDの実装時
+
+#### CI/CD
+- **`.claude/01_development_docs/11_cicd_design.md`** - GitHub Actionsとデプロイパイプライン
+- **使用する場面**: CI/CDワークフローの変更、デプロイプロセスの理解時
+
+#### E2Eテスト
+- **`.claude/01_development_docs/12_e2e_test_design.md`** - E2Eテスト設計（Playwright、エラー監視、クリティカルパス）
+- **使用する場面**: E2Eテスト実装、ブラウザテスト作成、エラー監視の設定時
+
+#### セキュリティ
+- **`.claude/01_development_docs/13_security_design.md`** - セキュリティ設計（認証、入力検証、ファイルアップロード）
+- **使用する場面**: セキュリティ実装、認証・認可、ファイルアップロード機能の実装時
+
+#### パフォーマンス
+- **`.claude/01_development_docs/14_performance_optimization.md`** - パフォーマンス最適化（Core Web Vitals、画像最適化、キャッシュ戦略）
+- **`.claude/01_development_docs/15_performance_monitoring.md`** - パフォーマンス計測・監視（Lighthouse、Web Vitals、プロセス管理）
+- **使用する場面**: パフォーマンス改善、SEO対策、画像処理の実装時、継続的な監視体制の構築時
+
+### 🎨 02_design_system - デザインシステム
+- **`.claude/02_design_system/00_basic_design.md`** - デザインシステム概要とクイックスタート
+- **`.claude/02_design_system/01_design_principles.md`** - デザイン原則、カラーシステム、タイポグラフィ
+- **`.claude/02_design_system/02_component_design.md`** - UIコンポーネント設計
+- **`.claude/02_design_system/02_layout_system.md`** - レイアウトシステムとグリッド設計
+- **`.claude/02_design_system/03_animation_system.md`** - アニメーションパターンと実装
+- **使用する場面**: UI実装、コンポーネント作成、スタイリング、アニメーション実装時
+
+### 📚 03_library_docs - ライブラリドキュメント
+- **`.claude/03_library_docs/01_react_router_patterns.md`** - React Routerパターン集（ローダー、アクション、エラーバウンダリー）
+- **`.claude/03_library_docs/02_vitest_testing.md`** - Vitestテスト方法（モック戦略、環境設定）
+- **`.claude/03_library_docs/03_prisma_patterns.md`** - Prismaパターンとベストプラクティス
+- **`.claude/03_library_docs/04_tailwind_utilities.md`** - Tailwind CSSユーティリティとカスタマイズ
+- **使用する場面**:
+  - React Router実装時、ルーティング設計時
+  - テスト作成時、モック実装時
+  - データベース操作実装時
+  - スタイリング、レスポンシブデザイン実装時
+
+
+### クイックリファレンスマップ
+
+| タスク | 主要ドキュメント |
+|------|------------------|
+| 新機能の追加 | アーキテクチャ → データベース → API → フロントエンド設計 |
+| 新しいAPIエンドポイントの作成 | API設計 → エラーハンドリング → 型定義 |
+| データベース変更 | データベース設計 → 型定義 |
+| UI実装 | フロントエンド設計 → デザインシステム → コンポーネント設計 |
+| スタイリング・アニメーション | デザイン原則 → コンポーネント設計 → アニメーションシステム |
+| React Routerコンポーネント実装 | React Routerパターン → フロントエンド設計 |
+| テストの作成 | テスト戦略 → アーキテクチャ（レイヤー別） |
+| Vitestテスト実装 | テスト戦略 → Vitestテスト方法 |
+| E2Eテスト実装 | E2Eテスト設計 → テスト戦略 |
+| セキュリティ実装 | セキュリティ設計 → 認証パターン |
+| パフォーマンス改善 | パフォーマンス最適化 → SEO要件 |
+| パフォーマンス監視 | パフォーマンス監視 → パフォーマンス最適化 |
+| デプロイ/CI | CI/CD設計 → 開発セットアップ |
+| エラーハンドリング | エラーハンドリング → 型定義 |
+| SEO実装 | SEO要件 → パフォーマンス最適化 |
 
 ---
 
