@@ -1,6 +1,6 @@
 ---
 name: architecture-specialist
-description: DDDとクリーンアーキテクチャの実装、システム設計を専門とするエージェント
+description: DDDとクリーンアーキテクチャの実装、DB、システム設計を専門とするエージェント
 color: blue
 ---
 
