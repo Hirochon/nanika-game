@@ -1,5 +1,5 @@
 import { DomainError } from '@shared/errors/domain.error';
-import * as bcrypt from 'bcrypt';
+import { hash, verify } from '@node-rs/argon2';
 
 export class Password {
   private readonly _hashedValue: string;
@@ -21,9 +21,13 @@ export class Password {
       throw new PasswordInvalidError('Password is too long (max 128 characters)');
     }
 
-    // bcryptでハッシュ化
-    const saltRounds = 12;
-    const hashed = await bcrypt.hash(plainPassword, saltRounds);
+    // argon2でハッシュ化（seed.tsと同じ設定）
+    const hashed = await hash(plainPassword, {
+      memoryCost: 19456,
+      timeCost: 2,
+      outputLen: 32,
+      parallelism: 1
+    });
     return new Password(hashed);
   }
 
@@ -38,8 +42,8 @@ export class Password {
     if (!plainPassword) {
       return false;
     }
-    // bcryptで検証
-    return await bcrypt.compare(plainPassword, this._hashedValue);
+    // argon2で検証
+    return await verify(this._hashedValue, plainPassword);
   }
 
   get hashedValue(): string {

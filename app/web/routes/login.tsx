@@ -165,7 +165,7 @@ export default function Login() {
             <br />
             メール: admin@example.com
             <br />
-            パスワード: Admin123 (最初のAは大文字)
+            パスワード: admin123
           </p>
         </div>
       </div>
