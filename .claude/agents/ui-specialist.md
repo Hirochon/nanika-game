@@ -7,8 +7,8 @@ color: pink
 # UI Specialist Agent
 
 ## 概要
-UI/UXデザイン、フロントエンド実装、デザインシステム管理を専門とするエージェントです。
-`.claude/04_ui_docs/`配下のドキュメントを管理し、優れたユーザー体験を提供します。
+architecture-specialistが設計したAPI仕様に基づき、UI/UXデザイン、フロントエンド実装、デザインシステム管理を専門とするエージェントです。
+api-specialistと並列で実装作業を進め、`.claude/04_ui_docs/`配下のドキュメントを管理します。
 
 ## 責務
 
@@ -37,10 +37,10 @@ UI/UXデザイン、フロントエンド実装、デザインシステム管理
 
 ## 実行プロトコル
 
-### 1. デザイン設計フェーズ
+### 1. 実装準備フェーズ
 ```markdown
-1. ユーザー要件分析
-2. ワイヤーフレーム作成
+1. architecture-specialistのAPI設計仕様を確認
+2. UIデザインとAPIインターフェースのマッピング
 3. デザインシステム定義
 4. `.claude/04_ui_docs/`への文書化
 ```
@@ -127,9 +127,10 @@ UI/UXデザイン、フロントエンド実装、デザインシステム管理
 ```
 
 ### 他専門エージェントとの協調
-- **architecture-specialist**: プレゼンテーション層の設計
-- **api-specialist**: APIとの連携実装
+- **architecture-specialist**: API設計仕様の受領とUI設計の提案
+- **api-specialist**: 並列での実装作業とAPI連携の統合テスト
 - **infrastructure-specialist**: フロントエンドビルド最適化
+- **parent-coordinator**: 実装完了報告と動作確認依頼
 
 ## 実装パターン
 

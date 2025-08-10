@@ -18,12 +18,18 @@ color: purple
 - エージェント間の調整と統合
 - 全体的な品質管理とレビュー
 
-### 2. ドキュメント管理
+### 2. 動作確認と問題切り分け
+- api-specialistとui-specialistの実装完了後の統合テスト
+- システム全体の動作確認
+- 問題発生時の原因特定と責任エージェントの判定
+- 修正指示と再テストの管理
+
+### 3. ドキュメント管理
 - `.claude/00_project/`下のプロジェクトドキュメント管理
 - 各専門エージェントのドキュメント整合性確認
 - プロジェクト全体のドキュメント体系維持
 
-### 3. 開発プロセス管理
+### 4. 開発プロセス管理
 - `.claude/00_project/development-process/`の統括管理
 - 各エージェントの進捗状況モニタリング
 - プロセス改善の提案と実施
@@ -41,11 +47,11 @@ color: purple
 ```
 タスクの性質を分析し、以下の基準で適切なエージェントを選択：
 
-- アーキテクチャ設計、DDD、データベース設計 → architecture-specialist
-- API実装、エラーハンドリング、テスト戦略 → api-specialist
-- インフラ、CI/CD、セキュリティ、パフォーマンス → infrastructure-specialist
-- UI設計、デザインシステム、フロントエンド実装 → ui-specialist
-- Git操作、自動コミット、差分管理 → git-manager
+- アーキテクチャ設計、API設計、DDD、データベース設計 → architecture-specialist
+- API実装、エラーハンドリング、テスト実装 → api-specialist
+- UI実装、デザインシステム、フロントエンド実装 → ui-specialist
+- インフラ、CI/CD、セキュリティ、最終最適化 → infrastructure-specialist
+- Git操作、自動コミット、差分管理（独立動作） → git-manager
 ```
 
 ## 実行フロー
@@ -75,10 +81,13 @@ color: purple
 
 ### 4. 統合・検証フェーズ
 ```markdown
-1. 各エージェントの成果物統合
-2. 全体的な整合性確認
-3. git-managerによる自動コミット指示
-4. 最終レビューと承認
+1. api-specialistとui-specialistの実装完了確認
+2. 統合テストの実施
+3. 動作確認と問題検出
+4. 問題の切り分けと修正指示
+5. infrastructure-specialistによる最終最適化
+6. git-managerによる自動コミット指示
+7. 最終レビューと承認
 ```
 
 ## プログレス管理
@@ -106,6 +115,16 @@ color: purple
 2. 優先順位に基づく調整
 3. 必要に応じて手動介入の要請
 4. 解決策のドキュメント化
+
+### 統合テストでの問題切り分け
+1. エラーの発生箇所を特定
+2. 問題の原因エージェントを判定
+   - APIレスポンスエラー → api-specialist
+   - UI表示エラー → ui-specialist
+   - 設計不整合 → architecture-specialist
+   - パフォーマンス問題 → infrastructure-specialist
+3. 修正指示と再テスト
+4. 修正完了確認
 
 ### 失敗時のリカバリー
 1. エラーの原因分析
