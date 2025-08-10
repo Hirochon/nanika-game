@@ -390,26 +390,75 @@ npm run build             # プロダクションビルド
 
 ## 12. 環境セットアップ
 
-### 初期セットアップ
+### GitHub Codespaces環境での自動セットアップ
+```bash
+# クイックセットアップ（DB起動・マイグレーション・シード・サーバー起動）
+npm run setup
+
+# フルセットアップ（依存関係インストール含む）
+npm run setup:full
+```
+
+### 手動セットアップ
 1. 依存関係のインストール
    ```bash
    npm install
    ```
 
-2. 環境変数の設定（必要に応じて）
+2. 環境変数の設定
    ```bash
-   cp .env.example .env.local
+   # .envファイルが存在しない場合のみ作成
+   if [ ! -f .env ]; then
+     cat > .env << EOF
+# Database
+DATABASE_URL="postgresql://nanika_user:nanika_password@localhost:5432/nanika_game?schema=public"
+
+# Application
+NODE_ENV=development
+EOF
+   fi
    ```
 
-3. 開発サーバーの起動
+3. PostgreSQLデータベースの起動（Docker使用）
+   ```bash
+   docker compose up -d postgres
+   ```
+
+4. データベースのセットアップ
+   ```bash
+   # マイグレーションの実行
+   npm run db:migrate
+   
+   # シードデータの投入
+   npm run db:seed
+   
+   # または一括実行
+   npm run db:setup
+   ```
+
+5. 開発サーバーの起動
    ```bash
    npm run dev
    ```
 
-### データベース環境設定
-- `.env.local`にデータベース接続情報を設定
-- Prisma/Supabaseクライアントの初期化
-- マイグレーションの実行
+### データベースのシードデータ
+`prisma/seed.ts`により、以下のテストユーザーが自動作成されます：
+- 管理者: admin@example.com / admin123
+- ユーザー1: user1@example.com / password123
+- ユーザー2: user2@example.com / password123
+- ゲスト: guest@example.com / guest123
+
+### データベース確認方法
+```bash
+# Prisma Studio（GUI）
+npx prisma studio
+
+# psqlコマンド（CLI）
+docker exec nanika-game-db psql -U nanika_user -d nanika_game -c "SELECT * FROM users;"
+
+# スクリプト実行
+npx tsx scripts/check-db.ts
+```
 
 ## 13. コアビジネスエンティティ
 
