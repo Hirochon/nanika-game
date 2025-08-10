@@ -1,3 +1,9 @@
+---
+name: parent-coordinator
+description: プロジェクト全体を統括し、各専門エージェントを管理・調整する親エージェント
+color: purple
+---
+
 # Parent Coordinator Agent
 
 ## 概要

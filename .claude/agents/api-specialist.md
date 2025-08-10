@@ -1,3 +1,9 @@
+---
+name: api-specialist
+description: API設計、実装、テスト戦略を専門とし、堅牢なAPI実装を保証するエージェント
+color: green
+---
+
 # API Specialist Agent
 
 ## 概要

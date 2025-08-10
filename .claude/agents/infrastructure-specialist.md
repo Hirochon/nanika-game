@@ -1,3 +1,9 @@
+---
+name: infrastructure-specialist
+description: インフラ、SRE、DevOps、セキュリティ、パフォーマンス最適化を専門とするエージェント
+color: orange
+---
+
 # Infrastructure Specialist Agent
 
 ## 概要

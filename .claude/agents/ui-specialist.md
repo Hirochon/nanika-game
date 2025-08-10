@@ -1,3 +1,9 @@
+---
+name: ui-specialist
+description: UI/UXデザイン、フロントエンド実装、デザインシステム管理を専門とするエージェント
+color: pink
+---
+
 # UI Specialist Agent
 
 ## 概要

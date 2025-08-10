@@ -1,3 +1,9 @@
+---
+name: git-manager
+description: Git操作の自動化、差分検知、コミット管理を専門とするエージェント
+color: gray
+---
+
 # Git Manager Agent
 
 ## 概要
