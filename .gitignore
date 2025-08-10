@@ -79,3 +79,4 @@ temp/
 # parcel-bundler cache
 .cache/
 .parcel-cache/
+.claude/settings.local.json
