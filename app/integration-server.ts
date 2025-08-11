@@ -52,12 +52,28 @@ const app = express();
 // セキュリティミドルウェア設定（統合テスト用に緩和）
 app.use(logSecurityEvents);
 
-// CORS設定（テスト用に全て許可）
+// CORS設定（セキュリティ強化版）
+const ALLOWED_ORIGINS = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'https://urban-doodle-5x75p64gqw7274qj-5173.app.github.dev',
+  'https://urban-doodle-5x75p64gqw7274qj-3000.app.github.dev',
+];
+
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   console.log(`[CORS] Request from origin: ${origin}, method: ${req.method}, path: ${req.path}`);
 
-  res.header('Access-Control-Allow-Origin', origin || '*');
+  // セキュリティ強化：許可されたオリジンのみ許可
+  if (!origin) {
+    res.header('Access-Control-Allow-Origin', 'null');
+  } else if (ALLOWED_ORIGINS.includes(origin) || process.env.NODE_ENV === 'development') {
+    res.header('Access-Control-Allow-Origin', origin);
+  } else {
+    console.warn(`[CORS] Blocked unauthorized origin: ${origin}`);
+    return res.status(403).json({ error: 'CORS: Origin not allowed' });
+  }
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header(
     'Access-Control-Allow-Headers',

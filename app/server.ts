@@ -11,12 +11,17 @@ import Redis from 'ioredis';
 import { Server as SocketServer } from 'socket.io';
 import { authenticateSession, optionalAuthentication } from './api/middlewares/auth';
 import {
+  commonSchemas,
   configureCors,
   configureHelmet,
   limitRequestSize,
   logSecurityEvents,
   rateLimit,
+  sanitizeInput,
   validateContentType,
+  validateSchema,
+  validateSqlInjection,
+  validateXSS,
 } from './api/middlewares/security';
 // ミドルウェア
 import { configureSession, getSessionStats, validateSession } from './api/middlewares/session';
@@ -48,10 +53,15 @@ if (!isDevelopment) {
 app.use(logSecurityEvents);
 app.use(configureCors(CORS_ORIGINS));
 app.use(configureHelmet({ corsOrigins: CORS_ORIGINS, isDevelopment }));
-app.use(rateLimit(100, 15 * 60 * 1000)); // 15分間で100リクエスト
+app.use(rateLimit(10, 60 * 1000)); // 1分間で10リクエスト（テスト用厳しい制限）
 
 // リクエストサイズ制限
 app.use(limitRequestSize('10mb'));
+
+// 入力検証とサニタイゼーション
+app.use(validateXSS); // XSS検証を最初に実行
+app.use(sanitizeInput);
+app.use(validateSqlInjection);
 
 // Body parsing
 app.use(express.json({ limit: '1mb' }));
@@ -118,65 +128,70 @@ app.get('/api/session-stats', async (_req, res) => {
 });
 
 // 認証API (ログイン/ログアウト)
-app.post('/api/auth/login', validateContentType, async (req, res) => {
-  try {
-    // TODO: 既存のログイン用例を統合
-    // const loginUseCase = container.resolve<LoginUseCase>('LoginUseCase');
-    // const result = await loginUseCase.execute(req.body);
+app.post(
+  '/api/auth/login',
+  validateContentType,
+  validateSchema(commonSchemas.userLogin),
+  async (req, res) => {
+    try {
+      // TODO: 既存のログイン用例を統合
+      // const loginUseCase = container.resolve<LoginUseCase>('LoginUseCase');
+      // const result = await loginUseCase.execute(req.body);
 
-    // 暫定的な実装 - テストユーザーの認証
-    const { email, password } = req.body;
+      // 暫定的な実装 - テストユーザーの認証
+      const { email, password } = req.body;
 
-    // テストユーザーのデータ
-    const testUsers = [
-      { id: 1, email: 'admin@example.com', password: 'admin123', name: '管理者' },
-      { id: 2, email: 'user1@example.com', password: 'password123', name: 'ユーザー1' },
-      { id: 3, email: 'user2@example.com', password: 'password123', name: 'ユーザー2' },
-      { id: 4, email: 'guest@example.com', password: 'guest123', name: 'ゲスト' },
-    ];
+      // テストユーザーのデータ
+      const testUsers = [
+        { id: 1, email: 'admin@example.com', password: 'admin123', name: '管理者' },
+        { id: 2, email: 'user1@example.com', password: 'password123', name: 'ユーザー1' },
+        { id: 3, email: 'user2@example.com', password: 'password123', name: 'ユーザー2' },
+        { id: 4, email: 'guest@example.com', password: 'guest123', name: 'ゲスト' },
+      ];
 
-    // ユーザー認証
-    const user = testUsers.find((u) => u.email === email && u.password === password);
+      // ユーザー認証
+      const user = testUsers.find((u) => u.email === email && u.password === password);
 
-    if (user) {
-      // セッションに認証情報を保存
-      req.session.userId = String(user.id);
-      req.session.userEmail = user.email;
-      req.session.userName = user.name;
-      req.session.isAuthenticated = true;
-      req.session.createdAt = new Date();
-      req.session.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      if (user) {
+        // セッションに認証情報を保存
+        req.session.userId = String(user.id);
+        req.session.userEmail = user.email;
+        req.session.userName = user.name;
+        req.session.isAuthenticated = true;
+        req.session.createdAt = new Date();
+        req.session.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-      res.json({
-        success: true,
-        data: {
-          user: {
-            id: user.id,
-            email: user.email,
-            name: user.name,
+        res.json({
+          success: true,
+          data: {
+            user: {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+            },
           },
-        },
-      });
-    } else {
-      res.status(401).json({
+        });
+      } else {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'INVALID_CREDENTIALS',
+            message: 'メールアドレスまたはパスワードが間違っています',
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({
         success: false,
         error: {
-          code: 'INVALID_CREDENTIALS',
-          message: 'メールアドレスまたはパスワードが間違っています',
+          code: 'LOGIN_ERROR',
+          message: 'ログイン処理中にエラーが発生しました',
         },
       });
     }
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'LOGIN_ERROR',
-        message: 'ログイン処理中にエラーが発生しました',
-      },
-    });
   }
-});
+);
 
 app.post('/api/auth/logout', authenticateSession, (req, res) => {
   req.session.destroy((err) => {
@@ -200,50 +215,70 @@ app.post('/api/auth/logout', authenticateSession, (req, res) => {
 });
 
 // ユーザー検索API
-app.get('/api/users/search', optionalAuthentication, async (req, res) => {
-  try {
-    const { q } = req.query;
+app.get(
+  '/api/users/search',
+  optionalAuthentication,
+  validateXSS, // ユーザー検索に特別なXSS検証を追加
+  validateSchema(commonSchemas.userSearch),
+  async (req, res) => {
+    try {
+      const { q } = req.query;
 
-    if (!q || typeof q !== 'string') {
-      return res.status(400).json({
+      if (!q || typeof q !== 'string') {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'INVALID_QUERY',
+            message: '検索クエリが必要です',
+          },
+        });
+      }
+
+      // 追加のXSSチェック（二重チェック）
+      const xssPatterns = [/javascript:/i, /<iframe/i, /<script/i];
+      for (const pattern of xssPatterns) {
+        if (pattern.test(q)) {
+          return res.status(400).json({
+            success: false,
+            error: {
+              code: 'XSS_DETECTED',
+              message: '不正な入力が検出されました',
+            },
+          });
+        }
+      }
+
+      // 暫定的なユーザーデータ（実際はDBから取得）
+      const mockUsers = [
+        { id: 1, name: '管理者', email: 'admin@example.com' },
+        { id: 2, name: 'ユーザー1', email: 'user1@example.com' },
+        { id: 3, name: 'ユーザー2', email: 'user2@example.com' },
+        { id: 4, name: 'ゲスト', email: 'guest@example.com' },
+      ];
+
+      // メールアドレスまたは名前で検索
+      const results = mockUsers.filter(
+        (user) =>
+          user.email.toLowerCase().includes(q.toLowerCase()) ||
+          user.name.toLowerCase().includes(q.toLowerCase())
+      );
+
+      res.json({
+        success: true,
+        data: results,
+      });
+    } catch (error) {
+      console.error('User search error:', error);
+      res.status(500).json({
         success: false,
         error: {
-          code: 'INVALID_QUERY',
-          message: '検索クエリが必要です',
+          code: 'SEARCH_ERROR',
+          message: 'ユーザー検索中にエラーが発生しました',
         },
       });
     }
-
-    // 暫定的なユーザーデータ（実際はDBから取得）
-    const mockUsers = [
-      { id: 1, name: '管理者', email: 'admin@example.com' },
-      { id: 2, name: 'ユーザー1', email: 'user1@example.com' },
-      { id: 3, name: 'ユーザー2', email: 'user2@example.com' },
-      { id: 4, name: 'ゲスト', email: 'guest@example.com' },
-    ];
-
-    // メールアドレスまたは名前で検索
-    const results = mockUsers.filter(
-      (user) =>
-        user.email.toLowerCase().includes(q.toLowerCase()) ||
-        user.name.toLowerCase().includes(q.toLowerCase())
-    );
-
-    res.json({
-      success: true,
-      data: results,
-    });
-  } catch (error) {
-    console.error('User search error:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'SEARCH_ERROR',
-        message: 'ユーザー検索中にエラーが発生しました',
-      },
-    });
   }
-});
+);
 
 // チャット API - メモリ内にルームとメッセージを保存（開発用）
 const chatRooms = new Map();
@@ -359,75 +394,81 @@ app.get('/api/chat/rooms/:roomId/messages', optionalAuthentication, (req, res) =
 });
 
 // チャットルーム作成API
-app.post('/api/chat/rooms', optionalAuthentication, async (req, res) => {
-  try {
-    const { type, name, description, memberIds } = req.body;
+app.post(
+  '/api/chat/rooms',
+  optionalAuthentication,
+  validateContentType,
+  validateSchema(commonSchemas.chatRoom),
+  async (req, res) => {
+    try {
+      const { type, name, description, memberIds } = req.body;
 
-    // バリデーション
-    if (!type || !['DIRECT', 'GROUP'].includes(type)) {
-      return res.status(400).json({
+      // バリデーション
+      if (!type || !['DIRECT', 'GROUP'].includes(type)) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'INVALID_TYPE',
+            message: '無効なチャットタイプです',
+          },
+        });
+      }
+
+      if (type === 'GROUP' && !name) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'NAME_REQUIRED',
+            message: 'グループチャットには名前が必要です',
+          },
+        });
+      }
+
+      if (!Array.isArray(memberIds) || memberIds.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'MEMBERS_REQUIRED',
+            message: 'メンバーを選択してください',
+          },
+        });
+      }
+
+      // 暫定的な実装（実際はDBに保存）
+      const currentUserId = req.session?.userId || 'guest-user';
+      const roomId = `room-${Date.now()}`;
+      const newRoom = {
+        id: roomId,
+        type,
+        name: name || (type === 'DIRECT' ? 'Direct Message' : 'New Group'),
+        description: description || null,
+        memberIds: [...memberIds, currentUserId],
+        memberCount: memberIds.length + 1,
+        createdAt: new Date(),
+        createdBy: currentUserId,
+      };
+
+      // メモリ内のMapに保存
+      chatRooms.set(roomId, newRoom);
+      console.log('Created new chat room:', newRoom);
+      console.log('Total chat rooms:', chatRooms.size);
+
+      res.json({
+        success: true,
+        data: newRoom,
+      });
+    } catch (error) {
+      console.error('Create room error:', error);
+      res.status(500).json({
         success: false,
         error: {
-          code: 'INVALID_TYPE',
-          message: '無効なチャットタイプです',
+          code: 'CREATE_ROOM_ERROR',
+          message: 'チャットルーム作成中にエラーが発生しました',
         },
       });
     }
-
-    if (type === 'GROUP' && !name) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'NAME_REQUIRED',
-          message: 'グループチャットには名前が必要です',
-        },
-      });
-    }
-
-    if (!Array.isArray(memberIds) || memberIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'MEMBERS_REQUIRED',
-          message: 'メンバーを選択してください',
-        },
-      });
-    }
-
-    // 暫定的な実装（実際はDBに保存）
-    const currentUserId = req.session?.userId || 'guest-user';
-    const roomId = `room-${Date.now()}`;
-    const newRoom = {
-      id: roomId,
-      type,
-      name: name || (type === 'DIRECT' ? 'Direct Message' : 'New Group'),
-      description: description || null,
-      memberIds: [...memberIds, currentUserId],
-      memberCount: memberIds.length + 1,
-      createdAt: new Date(),
-      createdBy: currentUserId,
-    };
-
-    // メモリ内のMapに保存
-    chatRooms.set(roomId, newRoom);
-    console.log('Created new chat room:', newRoom);
-    console.log('Total chat rooms:', chatRooms.size);
-
-    res.json({
-      success: true,
-      data: newRoom,
-    });
-  } catch (error) {
-    console.error('Create room error:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'CREATE_ROOM_ERROR',
-        message: 'チャットルーム作成中にエラーが発生しました',
-      },
-    });
   }
-});
+);
 
 // HTTP サーバー作成
 const httpServer = createServer(app);
