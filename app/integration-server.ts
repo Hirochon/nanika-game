@@ -65,19 +65,32 @@ app.use((req, res, next) => {
   const origin = req.headers.origin;
   console.log(`[CORS] Request from origin: ${origin}, method: ${req.method}, path: ${req.path}`);
 
-  // セキュリティ強化：許可されたオリジンのみ許可
+  // セキュリティ強化：固定値のみを使用
+  let corsOrigin: string | undefined;
+  
   if (!origin) {
     // originがない場合は固定値を設定
-    res.header('Access-Control-Allow-Origin', 'null');
-  } else if (ALLOWED_ORIGINS.includes(origin)) {
-    // 許可リストに含まれる場合のみ、そのオリジンを設定
-    res.header('Access-Control-Allow-Origin', origin);
-  } else if (process.env.NODE_ENV === 'development') {
-    // 開発環境では localhost のみ許可
-    const devOrigin = origin.startsWith('http://localhost') || origin.startsWith('https://localhost') 
-      ? origin 
-      : 'http://localhost:5173';
-    res.header('Access-Control-Allow-Origin', devOrigin);
+    corsOrigin = 'null';
+  } else {
+    // 許可リストから一致するオリジンを検索
+    for (const allowedOrigin of ALLOWED_ORIGINS) {
+      if (origin === allowedOrigin) {
+        corsOrigin = allowedOrigin; // 固定値を使用
+        break;
+      }
+    }
+    
+    // 開発環境で許可リストに含まれていない場合
+    if (!corsOrigin && process.env.NODE_ENV === 'development') {
+      // localhost の場合はデフォルトの開発用オリジンを使用
+      if (origin.startsWith('http://localhost') || origin.startsWith('https://localhost')) {
+        corsOrigin = 'http://localhost:5173'; // 固定値
+      }
+    }
+  }
+
+  if (corsOrigin) {
+    res.header('Access-Control-Allow-Origin', corsOrigin);
   } else {
     console.warn(`[CORS] Blocked unauthorized origin: ${origin}`);
     return res.status(403).json({ error: 'CORS: Origin not allowed' });
