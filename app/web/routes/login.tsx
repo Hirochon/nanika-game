@@ -19,11 +19,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  // DDD Architecture imports
-  const { container, TOKENS } = await import('@api/infrastructure/config/container');
-  const { LoginCommand } = await import('@api/application/commands/login.command');
-  const { LoginUseCase } = await import('@api/application/use-cases/login.use-case');
-
   const formData = await request.formData();
 
   // バリデーション
@@ -36,24 +31,41 @@ export async function action({ request }: ActionFunctionArgs) {
     return { errors: validation.errors };
   }
 
-  // 認証処理
+  // 認証処理 - APIサーバーを直接呼び出す
   try {
-    // コマンドオブジェクト作成
-    const loginCommand = LoginCommand.fromFormData(formData);
+    const response = await fetch('http://localhost:3000/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: formData.get('email'),
+        password: formData.get('password'),
+      }),
+    });
 
-    // ユースケース実行
-    const loginUseCase = container.resolve(TOKENS.LoginUseCase) as InstanceType<
-      typeof LoginUseCase
-    >;
-    const result = await loginUseCase.execute(loginCommand);
+    const result = await response.json();
 
-    if (result.success && result.user && result.session) {
+    if (result.success && result.data?.user) {
       // セッションCookieを設定してダッシュボードにリダイレクト
-      const sessionCookie = `nanika_game_user=${encodeURIComponent(JSON.stringify(result.userData))}; Path=/; HttpOnly; SameSite=Lax`;
+      const userData = result.data.user;
+      const cookieValue = encodeURIComponent(JSON.stringify({
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }));
+      
+      // GitHub Codespacesでは HttpOnly を外し、SameSiteをNoneに設定
+      const isCodespaces = process.env.CODESPACES === 'true';
+      const cookieOptions = isCodespaces 
+        ? `nanika_game_user=${cookieValue}; Path=/; SameSite=None; Secure`
+        : `nanika_game_user=${cookieValue}; Path=/; HttpOnly; SameSite=Lax`;
 
       return redirect('/dashboard', {
         headers: {
-          'Set-Cookie': sessionCookie,
+          'Set-Cookie': cookieOptions,
         },
       });
     } else {

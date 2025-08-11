@@ -30,7 +30,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  console.log('Logout action called with DDD architecture');
+  console.log('Logout action called');
 
   // POSTメソッドのみ許可
   if (request.method !== 'POST') {
@@ -38,24 +38,21 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    // DDD Architecture imports
-    const { container, TOKENS } = await import('@api/infrastructure/config/container');
-    const { LogoutCommand } = await import('@api/application/commands/logout.command');
-    const { LogoutUseCase } = await import('@api/application/use-cases/logout.use-case');
-
-    // コマンドオブジェクト作成
-    const logoutCommand = LogoutCommand.fromRequest(request);
-
-    // ユースケース実行
-    const logoutUseCase = container.resolve(TOKENS.LogoutUseCase) as InstanceType<
-      typeof LogoutUseCase
-    >;
-    const result = await logoutUseCase.execute(logoutCommand);
-
-    console.log('Logout result:', { success: result.success });
+    // APIサーバーへログアウトリクエスト
+    await fetch('http://localhost:3000/api/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': request.headers.get('Cookie') || '',
+      },
+    });
 
     // セッションCookieを削除してログイン画面にリダイレクト
-    const logoutCookie = 'nanika_game_user=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0';
+    // GitHub Codespacesでは HttpOnly を外し、SameSiteをNoneに設定
+    const isCodespaces = process.env.CODESPACES === 'true';
+    const logoutCookie = isCodespaces
+      ? 'nanika_game_user=; Path=/; SameSite=None; Secure; Max-Age=0'
+      : 'nanika_game_user=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0';
 
     return redirect('/login', {
       headers: {
