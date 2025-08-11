@@ -67,9 +67,17 @@ app.use((req, res, next) => {
 
   // セキュリティ強化：許可されたオリジンのみ許可
   if (!origin) {
+    // originがない場合は固定値を設定
     res.header('Access-Control-Allow-Origin', 'null');
-  } else if (ALLOWED_ORIGINS.includes(origin) || process.env.NODE_ENV === 'development') {
+  } else if (ALLOWED_ORIGINS.includes(origin)) {
+    // 許可リストに含まれる場合のみ、そのオリジンを設定
     res.header('Access-Control-Allow-Origin', origin);
+  } else if (process.env.NODE_ENV === 'development') {
+    // 開発環境では localhost のみ許可
+    const devOrigin = origin.startsWith('http://localhost') || origin.startsWith('https://localhost') 
+      ? origin 
+      : 'http://localhost:5173';
+    res.header('Access-Control-Allow-Origin', devOrigin);
   } else {
     console.warn(`[CORS] Blocked unauthorized origin: ${origin}`);
     return res.status(403).json({ error: 'CORS: Origin not allowed' });
