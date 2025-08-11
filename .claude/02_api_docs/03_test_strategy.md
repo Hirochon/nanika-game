@@ -109,8 +109,8 @@ describe('User Entity', () => {
         validUserData.id,
         validUserData.name,
         validUserData.email,
-        // bcryptでハッシュ化された'password123'
-        '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+        // bcryptでハッシュ化されたパスワード
+        'hashed_password_example',
         validUserData.createdAt
       );
 
@@ -123,7 +123,7 @@ describe('User Entity', () => {
         validUserData.id,
         validUserData.name,
         validUserData.email,
-        '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+        'hashed_password_example',
         validUserData.createdAt
       );
 
