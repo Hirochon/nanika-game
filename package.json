@@ -72,6 +72,7 @@
     "helmet": "^8.0.0",
     "ioredis": "^5.4.1",
     "isbot": "^5",
+    "isomorphic-dompurify": "^2.26.0",
     "node-fetch": "^3.3.2",
     "prisma": "^6.13.0",
     "react": "^18.3.1",
@@ -84,6 +85,7 @@
     "tsx": "^4.20.3",
     "tsyringe": "^4.10.0",
     "winston": "^3.16.0",
+    "zod": "^4.0.17",
     "zustand": "^5.0.7"
   }
 }
