@@ -5,6 +5,21 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
+  server: {
+    port: 5173,
+    strictPort: true, // ポート5173が使用中の場合はエラーを出す
+    proxy: {
+      '/socket.io': {
+        target: 'http://localhost:3000',
+        ws: true,
+        changeOrigin: true,
+      },
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },
+  },
   test: {
     globals: true,
     environment: 'jsdom',
@@ -21,7 +36,10 @@ export default defineConfig({
         '**/*.spec.ts',
       ],
     },
-    include: ['app/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    include: [
+      'app/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+      '__tests__/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+    ],
     exclude: ['node_modules', 'dist', 'build', '.react-router'],
   },
 });

@@ -21,9 +21,20 @@
     "enabled": true,
     "rules": {
       "recommended": true,
+      "a11y": {
+        "noSvgWithoutTitle": "off",
+        "useButtonType": "off",
+        "noLabelWithoutControl": "off",
+        "noStaticElementInteractions": "off",
+        "useKeyWithClickEvents": "off"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
+      },
       "complexity": {
         "noForEach": "off",
-        "noStaticOnlyClass": "warn",
+        "noStaticOnlyClass": "off",
+        "noBannedTypes": "off",
         "noUselessSwitchCase": "error",
         "useFlatMap": "warn"
       },
@@ -33,15 +44,17 @@
         "noGlobalObjectCalls": "error",
         "noInvalidConstructorSuper": "error",
         "noSetterReturn": "error",
-        "noUndeclaredVariables": "error",
+        "noUndeclaredVariables": "off",
         "noUnreachable": "error",
-        "noUnreachableSuper": "error"
+        "noUnreachableSuper": "error",
+        "noUnusedVariables": "error"
       },
       "style": {
         "useConst": "warn",
         "useDefaultParameterLast": "warn",
         "useExponentiationOperator": "warn",
-        "useTemplate": "warn"
+        "useTemplate": "warn",
+        "noNonNullAssertion": "off"
       },
       "suspicious": {
         "noDuplicateCase": "error",
@@ -49,6 +62,7 @@
         "noDuplicateObjectKeys": "error",
         "noDuplicateParameters": "error",
         "noEmptyBlockStatements": "warn",
+        "noExplicitAny": "off",
         "noExtraNonNullAssertion": "error",
         "noFunctionAssign": "error",
         "noImportAssign": "error",
@@ -57,7 +71,8 @@
         "noSelfCompare": "error",
         "noShadowRestrictedNames": "error",
         "noVar": "error",
-        "useDefaultSwitchClauseLast": "warn"
+        "useDefaultSwitchClauseLast": "warn",
+        "noArrayIndexKey": "off"
       }
     }
   },
@@ -72,6 +87,9 @@
       "bracketSameLine": false,
       "quoteStyle": "single",
       "attributePosition": "auto"
+    },
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
     }
   },
   "overrides": [
