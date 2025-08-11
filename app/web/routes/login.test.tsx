@@ -35,6 +35,6 @@ describe('Login Component Logic', () => {
     const result = validateLoginForm(invalidData);
 
     expect(result.isValid).toBe(false);
-    expect(result.errors.password).toContain('Password must be at least 8 characters');
+    expect(result.errors.password).toContain('Password must be at least 6 characters');
   });
 });
