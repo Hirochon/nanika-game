@@ -1,5 +1,5 @@
-import { DomainError } from '@shared/errors/domain.error';
 import { hash, verify } from '@node-rs/argon2';
+import { DomainError } from '@shared/errors/domain.error';
 
 export class Password {
   private readonly _hashedValue: string;
@@ -26,7 +26,7 @@ export class Password {
       memoryCost: 19456,
       timeCost: 2,
       outputLen: 32,
-      parallelism: 1
+      parallelism: 1,
     });
     return new Password(hashed);
   }
