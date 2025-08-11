@@ -1,6 +1,7 @@
 import {
   type ActionFunctionArgs,
   Form,
+  Link,
   type LoaderFunctionArgs,
   redirect,
   useLoaderData,
@@ -109,6 +110,83 @@ export default function Dashboard() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
+          {/* 機能メニュー */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <Link
+              to="/chat"
+              className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
+            >
+              <div className="p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <title>チャット機能アイコン</title>
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">チャット機能</dt>
+                      <dd className="text-lg font-medium text-gray-900">リアルタイム会話</dd>
+                    </dl>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <p className="text-sm text-gray-600">
+                    他のユーザーとリアルタイムでチャットができます
+                  </p>
+                </div>
+              </div>
+            </Link>
+
+            <div className="bg-white overflow-hidden shadow rounded-lg opacity-50">
+              <div className="p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-gray-400 rounded-lg flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <title>ゲーム機能アイコン</title>
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 10V3L4 14h7v7l9-11h-7z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">ゲーム機能</dt>
+                      <dd className="text-lg font-medium text-gray-400">準備中...</dd>
+                    </dl>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <p className="text-sm text-gray-500">ゲーム機能は現在開発中です</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ユーザー情報 */}
           <div className="border-4 border-dashed border-gray-200 rounded-lg p-8">
             <div className="text-center">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">ユーザー情報</h2>
