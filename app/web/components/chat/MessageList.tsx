@@ -7,13 +7,41 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useMessages, useRealtimeUpdates } from '../../hooks/useSocket';
 import type { ChatRoomId, Message, User, UserId } from '../../types/chat-types';
 import {
-  formatMessageContent,
   formatMessageTime,
   getTypingText,
   groupMessagesByDate,
 } from '../../utils/chat-utils';
 import { cn } from '../../utils/cn';
 import { Avatar } from '../ui/Avatar';
+
+/**
+ * セキュアなメッセージ表示（dangerouslySetInnerHTML を使用しない）
+ */
+function renderSafeMessage(content: string): JSX.Element[] {
+  // URLパターンを検出
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = content.split(urlRegex);
+  
+  return parts.map((part, index) => {
+    if (urlRegex.test(part)) {
+      // URLの場合はリンクとして表示
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline break-all"
+        >
+          {part}
+        </a>
+      );
+    } else {
+      // 通常のテキストはエスケープされてそのまま表示
+      return <span key={index}>{part}</span>;
+    }
+  });
+}
 
 export interface MessageListProps {
   roomId: ChatRoomId | null;
@@ -208,12 +236,9 @@ function MessageItem({ message, isOwn, showAvatar, isOnline }: MessageItemProps)
                 : 'bg-gray-200 text-gray-900 rounded-bl-sm'
             )}
           >
-            <div
-              className="text-sm whitespace-pre-wrap"
-              dangerouslySetInnerHTML={{
-                __html: formatMessageContent(message.content),
-              }}
-            />
+            <div className="text-sm whitespace-pre-wrap">
+              {renderSafeMessage(message.content)}
+            </div>
 
             {/* メッセージの時刻 */}
             <div className={cn('text-xs mt-1', isOwn ? 'text-indigo-200' : 'text-gray-500')}>

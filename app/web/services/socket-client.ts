@@ -133,7 +133,6 @@ export class SocketClient {
       this.socket.disconnect();
       this.socket = null;
     }
-    this.token = null;
     this.listeners.clear();
   }
 

@@ -151,12 +151,29 @@ export function linkifyUrls(text: string): string {
 }
 
 /**
- * メッセージ内容の表示用処理
- * サニタイズ + URLリンク化
+ * メッセージ内容の表示用処理（DOMPurify使用）
+ * より強力なサニタイズ + URLリンク化
  */
 export function formatMessageContent(content: string): string {
-  const sanitized = sanitizeMessage(content);
-  return linkifyUrls(sanitized);
+  if (typeof window === 'undefined') {
+    // サーバーサイドでは基本的なエスケープのみ
+    return sanitizeMessage(content);
+  }
+
+  // クライアントサイドではDOMPurifyを使用
+  const DOMPurify = require('isomorphic-dompurify');
+  
+  // まずURLをリンク化
+  const withLinks = linkifyUrls(content);
+  
+  // DOMPurifyでサニタイズ（aタグとその属性のみ許可）
+  const cleaned = DOMPurify.sanitize(withLinks, {
+    ALLOWED_TAGS: ['a'],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+    ALLOW_DATA_ATTR: false,
+  });
+  
+  return cleaned;
 }
 
 /**
