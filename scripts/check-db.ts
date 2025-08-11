@@ -15,7 +15,6 @@ async function checkDatabase() {
     // セッション数を確認
     const sessionCount = await prisma.session.count();
     console.log(`セッション数: ${sessionCount}`);
-
   } catch (error) {
     console.error('データベース確認エラー:', error);
   } finally {

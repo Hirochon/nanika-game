@@ -18,8 +18,12 @@ model User {
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime? @updatedAt @map("updated_at")
 
-  // Relations
+  // Relations (既存)
   sessions Session[]
+  
+  // Relations (新規追加)
+  chatMembers ChatMember[] @relation("UserChatMembers")
+  sentMessages Message[]   @relation("UserSentMessages")
 
   @@index([email])
   @@map("users")
@@ -37,4 +41,91 @@ model Session {
   @@index([userId])
   @@index([expiresAt])
   @@map("sessions")
+}
+
+// 新規追加テーブル
+model ChatRoom {
+  id          Int       @id @default(autoincrement())
+  type        ChatRoomType @default(DIRECT)
+  name        String?   @db.VarChar(100)
+  description String?   @db.Text
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+
+  // Relations
+  members  ChatMember[] @relation("ChatRoomMembers")
+  messages Message[]    @relation("ChatRoomMessages")
+
+  @@index([type, isActive], name: "idx_chat_rooms_type_active")
+  @@index([createdAt], name: "idx_chat_rooms_created_at")
+  @@map("chat_rooms")
+}
+
+model ChatMember {
+  id         Int       @id @default(autoincrement())
+  chatRoomId Int       @map("chat_room_id")
+  userId     Int       @map("user_id")
+  role       MemberRole @default(MEMBER)
+  joinedAt   DateTime  @default(now()) @map("joined_at")
+  lastReadAt DateTime? @map("last_read_at")
+  isActive   Boolean   @default(true) @map("is_active")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime? @updatedAt @map("updated_at")
+
+  // Relations
+  chatRoom ChatRoom @relation("ChatRoomMembers", fields: [chatRoomId], references: [id], onDelete: Cascade)
+  user     User     @relation("UserChatMembers", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatRoomId, userId], name: "idx_chat_members_unique")
+  @@index([chatRoomId, isActive], name: "idx_chat_members_room_active")
+  @@index([userId, isActive], name: "idx_chat_members_user_active")
+  @@map("chat_members")
+}
+
+model Message {
+  id          Int         @id @default(autoincrement())
+  chatRoomId  Int         @map("chat_room_id")
+  senderId    Int         @map("sender_id")
+  content     String      @db.Text
+  messageType MessageType @default(TEXT) @map("message_type")
+  sentAt      DateTime    @default(now()) @map("sent_at")
+  editedAt    DateTime?   @map("edited_at")
+  isDeleted   Boolean     @default(false) @map("is_deleted")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime?   @updatedAt @map("updated_at")
+
+  // Relations
+  chatRoom ChatRoom @relation("ChatRoomMessages", fields: [chatRoomId], references: [id], onDelete: Cascade)
+  sender   User     @relation("UserSentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([chatRoomId, sentAt], map: "idx_messages_room_sent")
+  @@index([senderId, sentAt], name: "idx_messages_sender_sent_at")
+  @@index([chatRoomId, messageType, sentAt], name: "idx_messages_room_type_sent")
+  @@map("messages")
+}
+
+// Enum定義
+enum ChatRoomType {
+  DIRECT
+  GROUP
+
+  @@map("chat_room_type")
+}
+
+enum MemberRole {
+  MEMBER
+  ADMIN
+  OWNER
+
+  @@map("member_role")
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  SYSTEM
+
+  @@map("message_type")
 }
