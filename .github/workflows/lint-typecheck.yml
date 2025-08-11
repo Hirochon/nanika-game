@@ -1,0 +1,142 @@
+name: Lint and Type Check
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Biome format check
+        run: npm run format:check
+
+      - name: Run Biome lint
+        run: npm run lint
+
+      - name: Check for unused dependencies
+        run: npx depcheck --ignores="@types/*,@react-router/*,@tailwindcss/*,tailwindcss"
+
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma types
+        run: npx prisma generate
+
+      - name: Run TypeScript type check
+        run: npm run typecheck
+
+      - name: Check for TypeScript strict mode compliance
+        run: |
+          echo "Checking TypeScript strict mode settings..."
+          if ! grep -q '"strict": true' tsconfig.json; then
+            echo "Warning: TypeScript strict mode is not enabled"
+            exit 1
+          fi
+
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for better analysis
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for console.log statements
+        run: |
+          echo "Checking for console.log statements in production code..."
+          if grep -r "console\.log" --include="*.ts" --include="*.tsx" --exclude-dir=node_modules --exclude-dir=.github --exclude-dir=__tests__ --exclude="*.test.ts" --exclude="*.spec.ts" app/; then
+            echo "Error: Found console.log statements in production code"
+            exit 1
+          fi
+
+      - name: Check for TODO comments
+        run: |
+          echo "Checking for TODO comments..."
+          grep -r "TODO\|FIXME\|HACK" --include="*.ts" --include="*.tsx" --exclude-dir=node_modules --exclude-dir=.github app/ || true
+
+      - name: Check for large files
+        run: |
+          echo "Checking for large files..."
+          find app -type f -size +500k -exec ls -lh {} \; | awk '{print $9 ": " $5}'
+          
+      - name: Analyze bundle size
+        run: |
+          npm run build
+          echo "Bundle size analysis:"
+          ls -lah build/client/assets/*.js | awk '{print $9 ": " $5}'
+
+  accessibility:
+    name: Accessibility Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for accessibility issues
+        run: |
+          echo "Checking for basic accessibility patterns..."
+          
+          # Check for missing alt attributes on images
+          if grep -r '<img' --include="*.tsx" app/ | grep -v 'alt='; then
+            echo "Warning: Found img tags without alt attributes"
+          fi
+          
+          # Check for proper ARIA labels
+          echo "Checking for interactive elements without labels..."
+          grep -r 'onClick\|onSubmit' --include="*.tsx" app/ | head -20 || true
+          
+          # Check for proper heading hierarchy
+          echo "Checking heading hierarchy..."
+          grep -r '<h[1-6]' --include="*.tsx" app/ | sort || true

@@ -1,0 +1,215 @@
+name: Security Checks
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run security checks daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Check for known vulnerabilities
+        run: npx better-npm-audit audit --level moderate
+
+      - name: Check outdated dependencies
+        run: npm outdated || true
+
+  secret-scanning:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for hardcoded secrets
+        run: |
+          echo "Checking for potential hardcoded secrets..."
+          
+          # Check for potential API keys
+          if grep -r "api[_-]?key.*=.*['\"]" --include="*.ts" --include="*.tsx" --include="*.js" --exclude-dir=node_modules app/; then
+            echo "Warning: Potential hardcoded API keys found"
+          fi
+          
+          # Check for potential passwords
+          if grep -r "password.*=.*['\"]" --include="*.ts" --include="*.tsx" --exclude="*.test.ts" --exclude="*.spec.ts" --exclude-dir=node_modules app/; then
+            echo "Warning: Potential hardcoded passwords found"
+          fi
+          
+          # Check for JWT secrets
+          if grep -r "secret.*=.*['\"]" --include="*.ts" --include="*.tsx" --exclude-dir=node_modules app/; then
+            echo "Warning: Potential hardcoded secrets found"
+          fi
+
+  code-scanning:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['javascript', 'typescript']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  security-headers:
+    name: Security Headers Check
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: nanika_user
+          POSTGRES_PASSWORD: nanika_password
+          POSTGRES_DB: nanika_game_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start server
+        env:
+          NODE_ENV: production
+          DATABASE_URL: postgresql://nanika_user:nanika_password@localhost:5432/nanika_game_test?schema=public
+          SESSION_SECRET: test-secret-key
+        run: |
+          npm run start:prod &
+          sleep 10
+
+      - name: Check security headers
+        run: |
+          echo "Checking security headers..."
+          curl -I http://localhost:3000 | grep -i "x-content-type-options\|x-frame-options\|x-xss-protection\|strict-transport-security\|content-security-policy"
+
+  sast:
+    name: Static Application Security Testing
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/owasp-top-ten
+            p/typescript
+            p/react
+
+      - name: Check for SQL injection vulnerabilities
+        run: |
+          echo "Checking for potential SQL injection patterns..."
+          if grep -r "query.*\${" --include="*.ts" --include="*.tsx" --exclude-dir=node_modules app/; then
+            echo "Warning: Potential SQL injection vulnerability found"
+          fi
+
+      - name: Check for XSS vulnerabilities
+        run: |
+          echo "Checking for potential XSS patterns..."
+          if grep -r "dangerouslySetInnerHTML" --include="*.tsx" app/; then
+            echo "Warning: Found dangerouslySetInnerHTML usage - ensure proper sanitization"
+          fi
+
+  docker-security:
+    name: Docker Security Scan
+    runs-on: ubuntu-latest
+    if: false  # Disabled since Dockerfile was removed
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
